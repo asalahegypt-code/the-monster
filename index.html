@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>THE MONSTER</title>
+
+<!-- ══════════════════════════════════════ -->
+<!--        PWA META TAGS                  -->
+<!-- ══════════════════════════════════════ -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#00d4ff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MONSTER"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
+
+<!-- Safe area for notch/Dynamic Island phones -->
+<style>
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;background:#030712}
+html,body{min-height:100%;background:#030712}
+body{font-family:'Cairo',sans-serif;direction:rtl;color:#e2e8f0;display:flex;flex-direction:column;min-height:100vh}
+body.on-tracker{height:100vh;min-height:100vh;overflow:hidden}
+
+@keyframes scan{0%{opacity:0;transform:translateX(-100%)}50%{opacity:1}100%{opacity:0;transform:translateX(100%)}}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 10px rgba(0,212,255,.3)}50%{box-shadow:0 0 24px #00d4ff,0 0 48px rgba(0,212,255,.4)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:rgba(10,20,40,.4);border-radius:5px}
+::-webkit-scrollbar-thumb{background:rgba(0,212,255,.45);border-radius:5px;border:1px solid rgba(0,212,255,.2)}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,212,255,.7)}
+
+/* ══ MOBILE PWA ══ */
+@media(max-width:600px){
+  #main{grid-template-columns:1fr!important;padding:8px 10px}
+  #hdr{padding:6px 12px}
+  .logo-t{font-size:13px;letter-spacing:2px}
+  .clock-t{font-size:16px}
+  #nav{padding:4px 10px;top:44px}
+  .nb{padding:4px 10px;font-size:11px}
+}
+/* منع تحديد النص عند الاستخدام كتطبيق */
+body{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text!important;user-select:text!important}
+
+/* HEADER */
+#hdr{background:linear-gradient(180deg,#0a0f1e,#030712);border-bottom:1px solid rgba(0,212,255,.15);
+  padding:7px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  position:sticky;top:0;z-index:20}
+.orb{width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle,#00d4ff 0%,#0066cc 50%,#001133 100%);
+  animation:orbPulse 2.5s ease-in-out infinite}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-t{font-size:16px;font-weight:800;letter-spacing:4px;
+  background:linear-gradient(90deg,#00d4ff,#fff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-s{font-size:8px;color:#4a9eba;letter-spacing:2px;margin-top:-2px}
+.clock-t{font-size:20px;font-weight:700;color:#00d4ff;letter-spacing:2px;text-align:center;line-height:1.1}
+.clock-d{font-size:10px;color:#64748b;text-align:center}
+
+/* NAV */
+#nav{display:flex;gap:3px;padding:5px 16px;background:rgba(10,15,30,.95);
+  border-bottom:1px solid rgba(0,212,255,.08);flex-shrink:0;
+  position:sticky;top:48px;z-index:19;overflow-x:auto;flex-wrap:wrap}
+.nb{padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;
+  font-family:'Cairo',sans-serif;border:1px solid transparent;
+  background:transparent;color:#64748b;transition:all .2s;white-space:nowrap}
+.nb.on{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.1);color:#00d4ff}
+
+/* MAIN */
+#main{flex:1;padding:12px 16px;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+#main.t-tasks{grid-template-columns:1fr}
+#main.t-projects{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+#main.t-tracker{padding:0;overflow:hidden;grid-template-columns:1fr;gap:0;
+  display:flex;flex:1;min-height:0}
+.tracker-frame{flex:1;width:100%;height:100%;border:none;display:block;background:#EDE7DA}
+#main.t-ai{grid-template-columns:1fr}
+
+
+/* CARD */
+.card{background:linear-gradient(135deg,rgba(10,20,40,.92),rgba(5,10,20,.92));
+  border:1px solid rgba(0,212,255,.12);border-radius:10px;padding:12px 14px;
+  position:relative;overflow:hidden;animation:fadeIn .3s ease}
+.cf{grid-column:1/-1}
+.sl{position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#00d4ff,transparent);
+  animation:scan 3.5s linear infinite}
+.ct{font-size:10px;letter-spacing:3px;color:#4a9eba;margin-bottom:10px;
+  text-transform:uppercase;display:flex;align-items:center;gap:8px}
+
+/* PRAYER */
+.npb{background:linear-gradient(135deg,rgba(0,212,255,.14),rgba(0,100,200,.09));
+  border:1px solid rgba(0,212,255,.28);border-radius:9px;padding:9px 12px;
+  margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pg{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.pi{padding:6px 3px;border-radius:7px;text-align:center;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.pi.on{background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.3)}
+.pn{font-size:9px;color:#64748b}
+.pt{font-size:12px;font-weight:700;color:#e2e8f0}
+.pi.on .pt{color:#00d4ff}
+
+/* PROGRESS */
+.prb{height:4px;border-radius:2px;background:rgba(255,255,255,.05);overflow:hidden;margin-top:5px}
+.prf{height:100%;border-radius:2px;transition:width 1.2s ease}
+
+/* TASKS */
+.ti{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;
+  margin-bottom:6px;background:rgba(0,212,255,.04);
+  border:1px solid rgba(0,212,255,.1);cursor:pointer;transition:all .2s;user-select:none}
+.ti.dn{background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.05);opacity:.45}
+.ti:hover{border-color:rgba(0,212,255,.25)}
+.chk{width:18px;height:18px;border-radius:50%;border:2px solid #334155;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#00d4ff;transition:all .2s}
+.ti.dn .chk{border-color:#00d4ff;background:rgba(0,212,255,.2)}
+.pd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ph{background:#ef4444}.pm{background:#f59e0b}.pl{background:#22c55e}
+.tbg{margin-right:auto;font-size:10px;color:#4a9eba;background:rgba(0,212,255,.08);padding:2px 8px;border-radius:10px}
+.tt{font-size:14px;flex:1}
+.ti.dn .tt{text-decoration:line-through}
+.delbtn{background:none;border:none;color:#ef444450;cursor:pointer;font-size:13px;
+  padding:4px;border-radius:4px;transition:color .2s;flex-shrink:0}
+.delbtn:hover{color:#ef4444}
+
+/* TASKS LIST SCROLL */
+.tasks-list{max-height:62vh;overflow-y:auto;padding-left:6px;scrollbar-width:thin;
+  scrollbar-color:rgba(0,212,255,.5) rgba(10,20,40,.3)}
+.tasks-list::-webkit-scrollbar{width:8px}
+.tasks-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#00d4ff,#0066cc);border-radius:4px}
+.tasks-list::-webkit-scrollbar-track{background:rgba(0,212,255,.05);border-radius:4px}
+
+/* DAILY RECURRING TASK */
+.dti{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;
+  margin-bottom:8px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.05));
+  border:1px solid rgba(245,158,11,.35);cursor:pointer;transition:all .2s;user-select:none;position:relative}
+.dti:hover{border-color:rgba(245,158,11,.6);box-shadow:0 0 14px rgba(245,158,11,.15)}
+.dti.dn{opacity:.55;background:rgba(255,255,255,.02);border-color:rgba(34,197,94,.3)}
+.dti.dn .chk{border-color:#22c55e;background:rgba(34,197,94,.2);color:#22c55e}
+.dti .ic{font-size:20px;flex-shrink:0}
+.dti .tt{font-size:14px;flex:1;font-weight:600}
+.dti.dn .tt{text-decoration:line-through;color:#94a3b8}
+.dti .sch{font-size:10px;color:#f59e0b;background:rgba(245,158,11,.1);
+  padding:3px 8px;border-radius:10px;letter-spacing:.5px}
+.dti.dn .sch{color:#22c55e;background:rgba(34,197,94,.1)}
+.daily-badge{position:absolute;top:-7px;right:14px;font-size:9px;font-weight:700;
+  background:linear-gradient(90deg,#f59e0b,#d97706);color:#fff;
+  padding:2px 10px;border-radius:10px;letter-spacing:1px;box-shadow:0 2px 6px rgba(245,158,11,.4)}
+
+/* PROJECT PROGRESS EDITOR */
+.prog-editor{display:flex;gap:6px;align-items:center;margin-top:10px;
+  padding:8px;border-radius:8px;background:rgba(0,212,255,.04);
+  border:1px solid rgba(0,212,255,.12)}
+.prog-btn{width:32px;height:32px;border-radius:6px;border:1px solid rgba(0,212,255,.25);
+  background:rgba(0,212,255,.08);color:#00d4ff;font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center}
+.prog-btn:hover{background:rgba(0,212,255,.2);border-color:#00d4ff;transform:scale(1.05)}
+.prog-num{flex:1;background:rgba(10,20,40,.7);border:1px solid rgba(0,212,255,.2);
+  border-radius:6px;padding:6px 10px;color:#e2e8f0;font-family:'Cairo',sans-serif;
+  font-size:14px;font-weight:700;text-align:center;outline:none;transition:border .2s}
+.prog-num:focus{border-color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
+.prog-pct-lbl{font-size:12px;color:#4a9eba;font-weight:600}
+
+/* INPUTS */
+.inp{flex:1;background:rgba(10,20,40,.85);border:1px solid rgba(0,212,255,.2);
+  border-radius:9px;padding:9px 14px;color:#e2e8f0;font-size:14px;
+  font-family:'Cairo',sans-serif;outline:none;direction:rtl;transition:border .2s}
+.inp:focus{border-color:rgba(0,212,255,.5)}
+.btn{padding:9px 20px;background:linear-gradient(135deg,#0066cc,#004499);border:none;
+  border-radius:9px;color:#fff;cursor:pointer;font-size:13px;
+  font-family:'Cairo',sans-serif;transition:opacity .2s;white-space:nowrap}
+.btn:hover{opacity:.85}
+.sb{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);border-radius:8px;padding:14px;margin-bottom:8px}
+
+/* AI ASSISTANT */
+.ai-wrap{display:flex;flex-direction:column;gap:10px}
+.ai-key-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ai-key-row input{flex:1;min-width:200px}
+.ai-status{font-size:11px;padding:3px 10px;border-radius:10px}
+.ai-status.ok{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.ai-status.no{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+.ai-quick{display:flex;gap:8px;flex-wrap:wrap}
+.ai-qb{padding:8px 14px;border-radius:8px;border:1px solid rgba(0,212,255,.3);
+  background:rgba(0,212,255,.06);color:#00d4ff;cursor:pointer;font-family:'Cairo',sans-serif;
+  font-size:12px;transition:all .2s}
+.ai-qb:hover{background:rgba(0,212,255,.15);border-color:#00d4ff}
+.ai-qb:disabled{opacity:.4;cursor:not-allowed}
+.ai-chat{min-height:260px;max-height:58vh;overflow-y:auto;background:rgba(5,10,20,.6);
+  border:1px solid rgba(0,212,255,.08);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.ai-msg{padding:10px 14px;border-radius:10px;max-width:88%;line-height:1.7;font-size:13.5px;white-space:pre-wrap;word-wrap:break-word}
+.ai-msg.user{align-self:flex-start;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.25);color:#e2e8f0}
+.ai-msg.bot{align-self:flex-end;background:rgba(10,20,40,.9);border:1px solid rgba(148,163,184,.2);color:#e2e8f0}
+.ai-msg.sys{align-self:center;font-size:11px;color:#64748b;background:transparent;border:none;padding:4px}
+.ai-msg.err{align-self:center;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:12px}
+.ai-input-row{display:flex;gap:8px}
+.ai-input-row textarea{flex:1;background:rgba(10,20,40,.85);border:1px solid rgba(0,212,255,.2);
+  border-radius:9px;padding:10px 14px;color:#e2e8f0;font-family:'Cairo',sans-serif;
+  font-size:14px;outline:none;direction:rtl;resize:none;min-height:46px;max-height:140px}
+.ai-input-row textarea:focus{border-color:rgba(0,212,255,.5)}
+.ai-typing{display:inline-flex;gap:3px;padding:6px}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:#00d4ff;animation:blink 1.4s infinite}
+.ai-typing span:nth-child(2){animation-delay:.2s}
+.ai-typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* EMAIL TAB */
+#main.t-email{grid-template-columns:1fr}
+.em-wrap{display:flex;flex-direction:column;gap:12px}
+.em-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.em-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.em-refresh{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border:none;padding:7px 14px;
+  border-radius:8px;font-weight:700;font-size:11px;cursor:pointer;font-family:'Cairo',sans-serif;
+  transition:all .2s;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(6,182,212,.25)}
+.em-refresh:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(6,182,212,.45)}
+.em-refresh:active{transform:scale(.95)}
+.em-refresh .rf-ic{display:inline-block;transition:transform .6s}
+.em-refresh.spinning .rf-ic{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.em-last{font-size:10px;color:#64748b;margin-top:4px}
+.em-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.em-modal{background:linear-gradient(145deg,#0b1428,#0a0f1f);border:1px solid rgba(0,212,255,.3);
+  border-radius:14px;padding:22px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.em-modal h3{color:#00d4ff;font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.em-modal p{font-size:12px;color:#cbd5e1;line-height:1.7;margin:8px 0}
+.em-modal .step{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);
+  border-radius:8px;padding:8px 12px;margin:6px 0;font-size:11.5px;color:#e2e8f0;display:flex;gap:8px}
+.em-modal .step b{color:#00d4ff;min-width:18px}
+.em-modal .prompt-box{background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.4);
+  border-radius:8px;padding:10px 12px;font-size:12px;color:#00d4ff;font-weight:600;
+  margin:10px 0;cursor:pointer;text-align:center;transition:all .2s;user-select:all}
+.em-modal .prompt-box:hover{background:rgba(0,212,255,.15);border-style:solid}
+.em-modal .mbtn{background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border:none;
+  padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;
+  font-family:'Cairo',sans-serif;margin:4px;transition:all .2s}
+.em-modal .mbtn.ghost{background:transparent;border:1px solid rgba(148,163,184,.3);color:#94a3b8}
+.em-modal .mbtn:hover{transform:translateY(-1px)}
+.em-modal-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.em-lang{display:flex;gap:0;border:1px solid rgba(0,212,255,.25);border-radius:20px;overflow:hidden}
+.em-lang button{padding:5px 14px;font-size:11px;font-weight:700;border:none;cursor:pointer;
+  background:transparent;color:#64748b;font-family:'Cairo',sans-serif;transition:all .2s}
+.em-lang button.on{background:#00d4ff;color:#030712}
+.em-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.em-stat{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);
+  border-radius:10px;padding:10px 12px;text-align:center}
+.em-stat.urg{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)}
+.em-stat.wait{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)}
+.em-stat.done{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25)}
+.em-stat-num{font-size:22px;font-weight:800;color:#00d4ff;line-height:1}
+.em-stat.urg .em-stat-num{color:#ef4444}
+.em-stat.wait .em-stat-num{color:#f59e0b}
+.em-stat.done .em-stat-num{color:#22c55e}
+.em-stat-lbl{font-size:10px;color:#94a3b8;margin-top:3px}
+.em-filters{display:flex;gap:6px;flex-wrap:wrap}
+.em-fb{padding:5px 12px;border-radius:6px;font-size:11px;border:1px solid rgba(0,212,255,.25);
+  background:transparent;color:#94a3b8;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .15s}
+.em-fb:hover{border-color:#00d4ff;color:#00d4ff}
+.em-fb.on{background:rgba(0,212,255,.15);border-color:#00d4ff;color:#00d4ff}
+.em-list{display:flex;flex-direction:column;gap:8px}
+.em-card{background:rgba(10,20,40,.7);border:1px solid rgba(148,163,184,.12);
+  border-radius:10px;padding:12px 14px;transition:all .2s;cursor:pointer;border-right:3px solid transparent}
+.em-card:hover{border-color:rgba(0,212,255,.35);background:rgba(10,20,40,.9)}
+.em-card[data-p="high"]{border-right-color:#ef4444}
+.em-card[data-p="med"]{border-right-color:#f59e0b}
+.em-card[data-p="low"]{border-right-color:#22c55e}
+.em-card[data-p="done"]{border-right-color:#22c55e;opacity:.65}
+.em-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:6px}
+.em-subj{font-size:13px;font-weight:700;color:#e2e8f0;flex:1;min-width:200px;line-height:1.4}
+.em-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.em-badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px}
+.em-badge.high{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.em-badge.med{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.em-badge.low{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.em-badge.done{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.em-badge.urgent{background:linear-gradient(90deg,#ef4444,#dc2626);color:#fff;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.em-from{font-size:11px;color:#4a9eba}
+.em-time{font-size:10px;color:#64748b}
+.em-body{font-size:12px;color:#cbd5e1;line-height:1.7;margin:6px 0}
+.em-action{background:rgba(0,212,255,.06);border-left:2px solid #00d4ff;
+  padding:6px 10px;margin-top:6px;border-radius:4px;font-size:11.5px;color:#e2e8f0}
+.em-card.ltr{direction:ltr;text-align:left;border-right:none;border-left:3px solid transparent}
+.em-card.ltr[data-p="high"]{border-left-color:#ef4444}
+.em-card.ltr[data-p="med"]{border-left-color:#f59e0b}
+.em-card.ltr[data-p="low"]{border-left-color:#22c55e}
+.em-card.ltr[data-p="done"]{border-left-color:#22c55e}
+.em-card.ltr .em-action{border-left:none;border-right:2px solid #00d4ff}
+
+/* MARKET TAB */
+#main.t-market{grid-template-columns:1fr}
+.mk-wrap{display:flex;flex-direction:column;gap:14px}
+.mk-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);border-radius:10px;padding:10px 14px}
+.mk-last{font-size:11px;color:#94a3b8}
+.mk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mk-card{background:linear-gradient(145deg,rgba(10,20,40,.85),rgba(10,20,40,.6));
+  border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:16px 18px;
+  transition:all .25s;position:relative;overflow:hidden}
+.mk-card:hover{transform:translateY(-2px);border-color:rgba(0,212,255,.4)}
+.mk-card.gold{border-top:3px solid #fbbf24}
+.mk-card.gold::before{content:"";position:absolute;top:-30px;right:-30px;width:80px;height:80px;
+  background:radial-gradient(circle,rgba(251,191,36,.25),transparent 70%);border-radius:50%}
+.mk-card.silver{border-top:3px solid #cbd5e1}
+.mk-card.silver::before{content:"";position:absolute;top:-30px;right:-30px;width:80px;height:80px;
+  background:radial-gradient(circle,rgba(203,213,225,.2),transparent 70%);border-radius:50%}
+.mk-card.fx{border-top:3px solid #22c55e}
+.mk-card.fx::before{content:"";position:absolute;top:-30px;right:-30px;width:80px;height:80px;
+  background:radial-gradient(circle,rgba(34,197,94,.2),transparent 70%);border-radius:50%}
+.mk-h{font-size:14px;font-weight:800;color:#e2e8f0;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.mk-rows{display:flex;flex-direction:column;gap:6px}
+.mk-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;
+  background:rgba(0,0,0,.25);border-radius:7px;font-size:12px}
+.mk-row span{color:#94a3b8}
+.mk-row b{color:#00d4ff;font-weight:800;font-family:'Courier New',monospace}
+.mk-card.gold .mk-row b{color:#fbbf24}
+.mk-card.silver .mk-row b{color:#e2e8f0}
+.mk-card.fx .mk-row b{color:#22c55e}
+.mk-conv{margin-top:14px;background:rgba(34,197,94,.05);border:1px dashed rgba(34,197,94,.3);
+  border-radius:10px;padding:12px}
+.mk-conv-h{font-size:12px;color:#22c55e;font-weight:700;margin-bottom:8px}
+.mk-conv-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px;font-size:11.5px}
+.mk-conv-row{background:rgba(10,20,40,.6);padding:6px 10px;border-radius:6px;color:#cbd5e1}
+.mk-conv-row b{color:#22c55e;font-family:'Courier New',monospace;margin-right:4px}
+.mk-note{font-size:10.5px;color:#64748b;text-align:center;margin-top:6px;font-style:italic}
+/* CHARTS */
+.mk-charts{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+.mk-chart-card{background:linear-gradient(145deg,rgba(10,20,40,.7),rgba(5,12,28,.85));
+  border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.mk-chart-card.gold{border-top:2px solid rgba(251,191,36,.6)}
+.mk-chart-card.silver{border-top:2px solid rgba(203,213,225,.6)}
+.mk-chart-card.fx{border-top:2px solid rgba(34,197,94,.6)}
+.mk-chart-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.mk-chart-title{font-size:13px;font-weight:700;color:#e2e8f0;display:flex;align-items:center;gap:8px}
+.mk-chart-now{font-size:11px;color:#94a3b8;font-family:'Courier New',monospace}
+.mk-chart-change{font-size:13px;font-weight:800;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:14px;font-family:'Cairo',sans-serif}
+.mk-chart-change.up{color:#22c55e;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)}
+.mk-chart-change.down{color:#ef4444;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.mk-chart-change.flat{color:#94a3b8;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.2)}
+.mk-range{display:flex;gap:3px;background:rgba(0,0,0,.25);border-radius:6px;padding:2px}
+.mk-range button{padding:4px 10px;font-size:10.5px;font-weight:700;border-radius:4px;border:none;
+  background:transparent;color:#94a3b8;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .15s}
+.mk-range button.on{background:rgba(0,212,255,.18);color:#00d4ff}
+.mk-range button:hover:not(.on){color:#cbd5e1;background:rgba(148,163,184,.08)}
+.mk-canvas-wrap{position:relative;height:180px;width:100%}
+.mk-stats-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-top:10px;font-size:10.5px}
+.mk-mini{background:rgba(0,0,0,.25);padding:6px 8px;border-radius:6px;text-align:center}
+.mk-mini-l{color:#64748b;font-size:9.5px;margin-bottom:2px}
+.mk-mini-v{color:#cbd5e1;font-weight:700;font-family:'Courier New',monospace}
+
+/* NEWS CARD (dashboard) */
+.news-card{grid-column:1/-1}
+.news-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.news-meta{font-size:10.5px;color:#64748b;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.news-meta .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;display:inline-block}
+.news-ref{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;font-size:11.5px;font-weight:700;
+  background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:1px solid rgba(239,68,68,.5);cursor:pointer;
+  font-family:'Cairo',sans-serif;transition:all .2s;box-shadow:0 2px 8px rgba(220,38,38,.3)}
+.news-ref:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(220,38,38,.45)}
+.news-ref.spinning{opacity:.7;cursor:wait}
+.news-ref.spinning .news-ref-i{animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.news-ref-i{display:inline-block}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.news-item{background:linear-gradient(135deg,rgba(220,38,38,.06),rgba(10,20,40,.7));border:1px solid rgba(239,68,68,.18);
+  border-radius:10px;padding:12px 14px;border-right:3px solid #dc2626;transition:all .2s;animation:fadeIn .35s ease}
+.news-item:hover{border-color:rgba(239,68,68,.45);transform:translateY(-2px)}
+.news-item.high{border-right-color:#ef4444;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(10,20,40,.75))}
+.news-item.med{border-right-color:#f59e0b;background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(10,20,40,.7))}
+.news-item.low{border-right-color:#22c55e;background:linear-gradient(135deg,rgba(34,197,94,.05),rgba(10,20,40,.7))}
+.news-tag{display:inline-block;font-size:9px;font-weight:800;padding:2px 8px;border-radius:8px;letter-spacing:.5px;margin-bottom:6px}
+.news-tag.high{background:linear-gradient(90deg,#ef4444,#dc2626);color:#fff;animation:pulse 1.6s infinite}
+.news-tag.med{background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+.news-tag.low{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.news-region{font-size:10px;color:#94a3b8;margin-bottom:4px;display:inline-block;margin-right:6px}
+.news-title{font-size:13px;font-weight:700;color:#e2e8f0;line-height:1.5;margin-bottom:6px}
+.news-body{font-size:11.5px;color:#cbd5e1;line-height:1.65}
+.news-source{font-size:10px;color:#4a9eba;margin-top:8px;padding-top:6px;border-top:1px dashed rgba(148,163,184,.15);display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.news-source a{color:#00d4ff;text-decoration:none}
+.news-source a:hover{text-decoration:underline}
+.news-empty{padding:30px 16px;text-align:center;color:#64748b;font-size:12px;background:rgba(0,212,255,.03);border:1px dashed rgba(0,212,255,.15);border-radius:10px}
+.news-empty .news-empty-i{font-size:32px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="logo">
+    <div class="orb"></div>
+    <div>
+      <div class="logo-t">THE MONSTER</div>
+      <div class="logo-s">YOUR PERSONAL INTELLIGENCE SYSTEM</div>
+    </div>
+  </div>
+  <div>
+    <div class="clock-t" id="ct">--:--:--</div>
+    <div class="clock-d" id="cd"></div>
+  </div>
+  <div style="text-align:left">
+    <div style="font-size:10px;color:#94a3b8">مرحباً</div>
+    <div style="font-size:13px;font-weight:700">أحمد 👋</div>
+    <div style="font-size:9px;color:#4a9eba">الشارقة، الإمارات</div>
+  </div>
+</div>
+
+<div id="nav">
+  <button class="nb on" onclick="go('dashboard',this)">🏠 الرئيسية</button>
+  <button class="nb"    onclick="go('projects',this)">📋 المشاريع</button>
+  <button class="nb"    onclick="go('tasks',this)">✅ المهام</button>
+  <button class="nb"    onclick="go('tracker',this)">🔥 متتبع العادات</button>
+  <button class="nb"    onclick="go('email',this)">📧 Email</button>
+  <button class="nb"    onclick="go('market',this)">📈 السوق العالمي</button>
+  <button class="nb"    onclick="go('ai',this)">🤖 المساعد الذكي</button>
+</div>
+
+<div id="main"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════
+const PRAYERS={الفجر:"04:32",الشروق:"05:54",الظهر:"12:18",العصر:"15:42",المغرب:"18:28",العشاء:"19:58"};
+const DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const MONTHS=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const STEPS=["إعداد البيئة","تدريب الفريق","تثبيت النظام","الاختبارات","الإطلاق"];
+const COLORS=["#00d4ff","#ff6b35","#a855f7","#22c55e","#f59e0b","#ef4444","#38bdf8","#6366f1"];
+
+// ══════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════
+function load(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let tab="dashboard";
+
+let PROJ=load("tm_proj",[
+  {id:1,name:"Sushi Art - Motor City",progress:75,color:"#00d4ff"},
+  {id:2,name:"Sushi Art - Mirdif",    progress:40,color:"#ff6b35"},
+  {id:3,name:"Sushi Art - JVC",       progress:20,color:"#a855f7"},
+  {id:4,name:"Bubble Tea By Rosa's",  progress:60,color:"#22c55e"},
+]);
+
+// Daily recurring scheduled tasks (resets automatically each day)
+const DAILY_TASKS=[
+  {id:"email-task-report",icon:"📧",text:"Email task report — تقرير البريد الإلكتروني",time:"22:10",schedule:"يومياً"},
+];
+let DAILY_DONE=load("tm_daily_done",{});
+
+// AI ASSISTANT STATE
+let AI_KEY=load("tm_ai_key","");
+let AI_MODEL=load("tm_ai_model","claude-sonnet-4-6");
+let AI_MSGS=load("tm_ai_msgs",[]);
+let AI_BUSY=false;
+
+// NEWS STATE (Middle East breaking news)
+let NEWS_DATA=load("tm_news",{
+  fetched:null,
+  items:[
+    {priority:"high",region:"إيران/الخليج",title:"الحرس الثوري يسيطر على سفينتين في مضيق هرمز ويفتح النار على ثالثة",summary:"إيران تلقت أول إيراداتها من الرسوم المفروضة على السفن العابرة لهرمز، وسط حشد عسكري أمريكي ضخم متجه إلى المنطقة.",source:"Al Jazeera / CNN",url:"https://www.aljazeera.com/news/liveblog/2026/4/23/iran-war-live-israel-kills-lebanese-journalist-tehran-us-talks-stalled"},
+    {priority:"high",region:"لبنان",title:"استشهاد الصحفية آمال خليل في غارة إسرائيلية على بلدة الطيري",summary:"حزب الله ردّ باستهداف موقع مدفعي إسرائيلي في البياضة بطائرة مسيّرة. لبنان يرفض أي مفاوضات قبل الانسحاب الإسرائيلي.",source:"الأخبار / Al Jazeera",url:"https://www.aljazeera.com/middle-east/"},
+    {priority:"med",region:"مصر/الخليج",title:"مصر تنشر أنظمة دفاع جوي متطورة في السعودية والكويت والإمارات",summary:"خطوة استراتيجية بتوجيهات الرئيس السيسي في ظل التوتر الإقليمي المتصاعد وحرب هرمز.",source:"موقع الدفاع العربي",url:"https://www.defense-arabic.com/"},
+    {priority:"med",region:"الإمارات",title:"550 مليون دولار تعهد إماراتي للاستجابة الإنسانية الأممية 2026",summary:"الإمارات تستدعي القائم بالأعمال العراقي احتجاجاً على اعتداءات منطلقة من العراق.",source:"الخارجية الإماراتية",url:"https://www.mofa.gov.ae/mediahub/news"}
+  ]
+});
+let NEWS_BUSY=false;
+
+let TASKS=load("tm_tasks",[
+  {id:1,text:"متابعة تثبيت النظام في Motor City",done:false,priority:"high"},
+  {id:2,text:"تجهيز وثائق Triptyque للرحلة",      done:false,priority:"medium"},
+  {id:3,text:"مراجعة عروض الشهادات البنكية",       done:true, priority:"low"},
+  {id:4,text:"اجتماع فريق Eathos - الأسبوع القادم",done:false,priority:"high"},
+  {id:5,text:"تحديث تقرير المشروع الشهري",         done:false,priority:"medium"},
+]);
+
+// ══════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  document.getElementById("ct").textContent=n.toLocaleTimeString("ar-AE",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.getElementById("cd").textContent=`${DAYS[n.getDay()]}، ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+}
+setInterval(tick,1000);tick();
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const card=(b,c="")=>`<div class="card ${c}"><div class="sl"></div>${b}</div>`;
+const ctitle=t=>`<div class="ct">${t}</div>`;
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function dayKey(){return new Date().toISOString().slice(0,10);}
+function isDailyDone(id){return DAILY_DONE[dayKey()]?.[id]===true;}
+function toggleDaily(id){
+  const k=dayKey();
+  if(!DAILY_DONE[k])DAILY_DONE[k]={};
+  DAILY_DONE[k][id]=!DAILY_DONE[k][id];
+  // Cleanup old entries (keep only last 14 days)
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-14);
+  const cKey=cutoff.toISOString().slice(0,10);
+  Object.keys(DAILY_DONE).forEach(dk=>{if(dk<cKey)delete DAILY_DONE[dk];});
+  save("tm_daily_done",DAILY_DONE);
+  render();
+}
+function dailyTaskHtml(dt){
+  const done=isDailyDone(dt.id);
+  return `<div class="dti ${done?'dn':''}" onclick="toggleDaily('${dt.id}')">
+    <div class="daily-badge">⏰ مجدولة يومياً</div>
+    <div class="chk" style="width:22px;height:22px">${done?'✓':''}</div>
+    <span class="ic">${dt.icon}</span>
+    <span class="tt">${dt.text}</span>
+    <span class="sch">🕘 ${dt.time}</span>
+  </div>`;
+}
+
+function nextPrayer(){
+  const n=new Date(),cur=n.getHours()*60+n.getMinutes();
+  for(const[name,time]of Object.entries(PRAYERS)){
+    const[h,m]=time.split(":").map(Number),pm=h*60+m;
+    if(pm>cur){const d=pm-cur;return{name,time,rem:`${Math.floor(d/60)}س ${d%60}د`};}
+  }
+  return{name:"الفجر",time:"04:32",rem:"غداً"};
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function go(t,btn){
+  tab=t;
+  document.querySelectorAll(".nb").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  render();
+}
+function render(){
+  const m=document.getElementById("main");
+  m.className=`t-${tab}`;
+  m.innerHTML=tab==="dashboard"?rDash():tab==="projects"?rProj():tab==="tasks"?rTasks():tab==="ai"?rAI():tab==="email"?rEmail():tab==="market"?rMarket():rTracker();
+  document.body.classList.toggle("on-tracker",tab==="tracker");
+  bind();
+  if(tab==="market"){requestAnimationFrame(()=>initMarketCharts());}
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function rDash(){
+  const np=nextPrayer();
+  const done=TASKS.filter(t=>t.done).length;
+  const pct=TASKS.length?Math.round(done/TASKS.length*100):0;
+
+  const pCards=Object.entries(PRAYERS).map(([n,t])=>`
+    <div class="pi ${n===np.name?"on":""}">
+      <div class="pn">${n}</div><div class="pt">${t}</div>
+    </div>`).join("");
+
+  const projRows=PROJ.map(p=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span>${esc(p.name)}</span><span style="color:${p.color}">${p.progress}%</span>
+      </div>
+      <div class="prb"><div class="prf" style="width:${p.progress}%;background:linear-gradient(90deg,${p.color}77,${p.color})"></div></div>
+    </div>`).join("");
+
+  const topTasks=TASKS.filter(t=>!t.done).slice(0,4).map(t=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px;border-radius:7px;margin-top:6px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.08)">
+      <div class="pd p${t.priority[0]}"></div>
+      <span style="font-size:12px">${esc(t.text)}</span>
+    </div>`).join("");
+  const dailyPreview=DAILY_TASKS.map(dailyTaskHtml).join("");
+
+  return `
+    ${card(`
+      ${ctitle("🕌 مواقيت الصلاة — الشارقة")}
+      <div class="npb">
+        <div><div style="font-size:11px;color:#4a9eba">الصلاة القادمة</div>
+          <div style="font-size:20px;font-weight:800;color:#00d4ff">${np.name}</div></div>
+        <div style="text-align:center">
+          <div style="font-size:24px;font-weight:700">${np.time}</div>
+          <div style="font-size:11px;color:#94a3b8">متبقي: ${np.rem}</div>
+        </div>
+        <div style="font-size:26px">☪️</div>
+      </div>
+      <div class="pg">${pCards}</div>
+    `,"cf")}
+    ${rNewsCard()}
+    ${card(`
+      ${ctitle("📊 المشاريع")}
+      ${projRows}
+    `)}
+    ${card(`
+      ${ctitle("✅ المهام")}
+      <div class="sb" style="text-align:center">
+        <div style="font-size:32px;font-weight:800;color:#00d4ff">${done}/${TASKS.length}</div>
+        <div style="font-size:11px;color:#64748b">منجزة</div>
+      </div>
+      <div class="prb"><div class="prf" style="width:${pct}%;background:linear-gradient(90deg,#22c55e77,#22c55e)"></div></div>
+      <div style="font-size:11px;color:#64748b;text-align:center;margin-top:4px">${pct}%</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,158,11,.2)">
+        <div style="font-size:10px;color:#f59e0b;margin-bottom:6px;letter-spacing:1px;text-align:center">⏰ مهمة يومية مجدولة</div>
+        ${dailyPreview}
+      </div>
+      ${topTasks}
+    `)}`;
+}
+
+// ══════════════════════════════════════════
+// NEWS CARD
+// ══════════════════════════════════════════
+function rNewsCard(){
+  const items=NEWS_DATA.items||[];
+  const fetched=NEWS_DATA.fetched
+    ? new Date(NEWS_DATA.fetched).toLocaleString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+    : "بيانات أولية";
+  const itemsHtml=items.length
+    ? items.map(n=>{
+        const p=n.priority||"med";
+        const tag=p==="high"?"عاجل جداً":p==="med"?"مهم":"عام";
+        const src=esc(n.source||"غير محدد");
+        const lnk=n.url?`<a href="${esc(n.url)}" target="_blank" rel="noopener">↗ المصدر</a>`:'';
+        return `<div class="news-item ${p}">
+          <span class="news-tag ${p}">${tag}</span>
+          <span class="news-region">📍 ${esc(n.region||"الشرق الأوسط")}</span>
+          <div class="news-title">${esc(n.title)}</div>
+          <div class="news-body">${esc(n.summary)}</div>
+          <div class="news-source"><span>📰 ${src}</span>${lnk}</div>
+        </div>`;
+      }).join("")
+    : `<div class="news-empty"><div class="news-empty-i">📰</div>اضغط زر "تحديث" لجلب أحدث الأخبار العاجلة</div>`;
+
+  return card(`
+    <div class="news-head">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px;font-weight:800;color:#e2e8f0">🔴 أخبار الشرق الأوسط — عاجل</span>
+        <span class="news-meta"><span class="dot"></span>${fetched}</span>
+      </div>
+      <button id="newsRef" class="news-ref" onclick="refreshNews()">
+        <span class="news-ref-i">🔄</span><span>تحديث</span>
+      </button>
+    </div>
+    <div class="news-grid">${itemsHtml}</div>
+    <div style="font-size:10px;color:#64748b;text-align:center;margin-top:10px;font-style:italic">
+      ${AI_KEY?"يعمل بالذكاء الاصطناعي عبر web_search · المصادر: الجزيرة، CNN، العربية، الشرق، Al-Akhbar":"💡 لتفعيل التحديث الذكي، أدخل مفتاح Anthropic API في تبويب \"المساعد الذكي\""}
+    </div>
+  `,"news-card");
+}
+
+async function refreshNews(){
+  if(!AI_KEY){
+    alert("أدخل مفتاح Anthropic API في تبويب المساعد الذكي أولاً لتفعيل تحديث الأخبار");
+    return;
+  }
+  if(NEWS_BUSY)return;
+  NEWS_BUSY=true;
+  const btn=document.getElementById("newsRef");
+  if(btn){btn.classList.add("spinning");btn.querySelector("span:last-child").textContent="جاري الجلب...";}
+  try{
+    const today=new Date().toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const sys=`أنت محرر أخبار محترف. استخدم أداة web_search للبحث عن آخر الأخبار العاجلة في الشرق الأوسط لهذا اليوم (${today}).
+
+ابحث في مصادر مثل: الجزيرة، CNN Arabic، العربية، الشرق، Reuters Middle East، BBC Arabic، الشرق الأوسط، الأهرام، الإمارات اليوم.
+
+ركّز على:
+- إيران/الولايات المتحدة (مضيق هرمز، العقوبات)
+- لبنان/إسرائيل/فلسطين
+- مصر، الإمارات، السعودية، الخليج
+- تركيا، سوريا، اليمن، العراق
+- الأخبار الاقتصادية المؤثرة على المنطقة
+
+أرجع 6 أخبار فقط، الأكثر أهمية، في صيغة JSON صالحة (بدون markdown، بدون شرح):
+
+{
+  "fetched": "ISO timestamp",
+  "items": [
+    {
+      "priority": "high" | "med" | "low",
+      "region": "اسم الدولة/المنطقة بالعربية",
+      "title": "عنوان الخبر بالعربية (سطر واحد، أقل من 90 حرف)",
+      "summary": "ملخص في 1-2 جملة بالعربية",
+      "source": "اسم المصدر",
+      "url": "رابط الخبر"
+    }
+  ]
+}
+
+priority="high" للأخبار العاجلة جداً (حروب، انفجارات، قرارات مصيرية).
+لا تخرج أي شيء آخر غير JSON.`;
+
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key":AI_KEY,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body:JSON.stringify({
+        model:AI_MODEL||"claude-sonnet-4-6",
+        max_tokens:4096,
+        system:sys,
+        tools:[{type:"web_search_20250305",name:"web_search",max_uses:6}],
+        messages:[{role:"user",content:"اجلب أهم 6 أخبار عاجلة في الشرق الأوسط الآن بالطريقة المحددة."}]
+      })
+    });
+    const d=await res.json();
+    if(!res.ok)throw new Error(d?.error?.message||("HTTP "+res.status));
+    const txt=(d.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("\n");
+    let clean=txt.replace(/^```(?:json)?\s*/m,"").replace(/\s*```\s*$/m,"").trim();
+    const jm=clean.match(/\{[\s\S]*\}/);
+    if(!jm)throw new Error("لم يتم استرداد JSON صالح");
+    const parsed=JSON.parse(jm[0]);
+    if(!parsed.items||!Array.isArray(parsed.items))throw new Error("لا توجد أخبار في الرد");
+    NEWS_DATA={
+      fetched:parsed.fetched||new Date().toISOString(),
+      items:parsed.items.slice(0,6)
+    };
+    save("tm_news",NEWS_DATA);
+    render();
+  }catch(e){
+    console.error(e);
+    alert("فشل تحديث الأخبار: "+e.message+"\n\nتأكد أن النموذج المختار يدعم web_search (Sonnet 4.x أو أحدث).");
+  }finally{
+    NEWS_BUSY=false;
+    const btn2=document.getElementById("newsRef");
+    if(btn2){btn2.classList.remove("spinning");btn2.querySelector("span:last-child").textContent="تحديث";}
+  }
+}
+
+// ══════════════════════════════════════════
+// PROJECTS
+// ══════════════════════════════════════════
+function rProj(){
+  const rows=PROJ.map(p=>{
+    const fill=Math.floor(p.progress/20);
+    const st=STEPS.map((s,i)=>{
+      const d=i<fill;
+      return `<div data-step="${i}" data-done="${d?1:0}" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;margin-bottom:4px;background:${d?"rgba(0,212,255,.05)":"rgba(255,255,255,.02)"}">
+        <div class="step-circle" style="width:16px;height:16px;border-radius:50%;border:2px solid ${d?p.color:"#334155"};background:${d?p.color+"33":"transparent"};display:flex;align-items:center;justify-content:center;font-size:10px;color:${p.color}">${d?"✓":""}</div>
+        <span class="step-lbl" style="font-size:13px;color:${d?"#e2e8f0":"#64748b"}">${s}</span>
+      </div>`;
+    }).join("");
+    return `<div class="card proj-card" data-pid="${p.id}" data-color="${p.color}">
+      <div class="sl"></div>
+      ${ctitle(`<span style="color:${p.color}">●</span> ${esc(p.name)}`)}
+      <div class="sb" style="text-align:center">
+        <div class="pBig" style="font-size:36px;font-weight:800;color:${p.color}">${p.progress}%</div>
+        <div style="font-size:11px;color:#64748b">نسبة الإنجاز</div>
+      </div>
+      <div class="prb"><div class="pBar prf" style="width:${p.progress}%;background:linear-gradient(90deg,${p.color}77,${p.color})"></div></div>
+      <input class="pSlider" type="range" min="0" max="100" value="${p.progress}"
+        style="width:100%;margin-top:12px;accent-color:${p.color};cursor:pointer"/>
+      <div class="prog-editor">
+        <button class="prog-btn pMinus" type="button" title="انقص 5%">−</button>
+        <input class="prog-num pNum" type="number" min="0" max="100" value="${p.progress}"/>
+        <span class="prog-pct-lbl">%</span>
+        <button class="prog-btn pPlus" type="button" title="زد 5%">+</button>
+      </div>
+      <div style="font-size:10px;color:#64748b;text-align:center;margin:6px 0 10px">اسحب الشريط أو استخدم الأزرار / اكتب الرقم مباشرة</div>
+      <div class="pSteps">${st}</div>
+      <button class="delbtn pDel" type="button" style="margin-top:10px;width:100%;text-align:center;font-size:12px;color:#ef444488;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.1);border-radius:6px;padding:6px">حذف المشروع</button>
+    </div>`;
+  }).join("");
+
+  return rows+card(`
+    ${ctitle("➕ مشروع جديد")}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input id="pname" class="inp" placeholder="اسم المشروع..."/>
+      <input id="pprog" type="number" min="0" max="100" value="0" placeholder="0"
+        style="width:80px;background:rgba(10,20,40,.85);border:1px solid rgba(0,212,255,.2);border-radius:9px;padding:9px 10px;color:#e2e8f0;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;text-align:center;outline:none"/>
+      <span style="color:#4a9eba;font-size:12px;font-weight:600">%</span>
+      <button class="btn" onclick="addProj()">إضافة</button>
+    </div>
+    <div style="font-size:10px;color:#64748b;margin-top:6px">يمكنك تحديد نسبة إنجاز أولية للمشروع عند الإضافة</div>
+  `,"cf");
+}
+function livePreview(id,val,color){
+  const bar=document.getElementById("pBar"+id);
+  const big=document.getElementById("pBig"+id);
+  const num=document.getElementById("pNum"+id);
+  if(bar)bar.style.width=val+"%";
+  if(big)big.textContent=val+"%";
+  if(num)num.value=val;
+}
+function bumpProj(id,delta){
+  const p=PROJ.find(x=>x.id===id);
+  if(!p)return;
+  const v=Math.max(0,Math.min(100,(+p.progress||0)+delta));
+  upProj(id,v);
+}
+function clampPct(v){return Math.max(0,Math.min(100,+v||0));}
+function updateProjDom(card,val,color){
+  const big=card.querySelector(".pBig");
+  const bar=card.querySelector(".pBar");
+  const num=card.querySelector(".pNum");
+  const sld=card.querySelector(".pSlider");
+  if(big)big.textContent=val+"%";
+  if(bar)bar.style.width=val+"%";
+  if(num&&document.activeElement!==num)num.value=val;
+  if(sld&&document.activeElement!==sld)sld.value=val;
+  // Update step indicators
+  const stepsWrap=card.querySelector(".pSteps");
+  if(stepsWrap){
+    const fill=Math.floor(val/20);
+    stepsWrap.querySelectorAll("[data-step]").forEach(el=>{
+      const i=+el.dataset.step,d=i<fill;
+      el.dataset.done=d?"1":"0";
+      const circle=el.querySelector(".step-circle"),label=el.querySelector(".step-lbl");
+      if(circle){circle.style.borderColor=d?color:"#334155";circle.style.background=d?color+"33":"transparent";circle.textContent=d?"✓":"";}
+      if(label)label.style.color=d?"#e2e8f0":"#64748b";
+      el.style.background=d?"rgba(0,212,255,.05)":"rgba(255,255,255,.02)";
+    });
+  }
+}
+function setProjProgress(id,val){
+  val=clampPct(val);
+  PROJ=PROJ.map(p=>p.id===id?{...p,progress:val}:p);
+  save("tm_proj",PROJ);
+  const card=document.querySelector(`.proj-card[data-pid="${id}"]`);
+  if(card){
+    const color=card.dataset.color||"#00d4ff";
+    updateProjDom(card,val,color);
+  }
+}
+function upProj(id,val){setProjProgress(id,val);}
+function bumpProjCard(card,delta){
+  const id=Number(card.dataset.pid);
+  const p=PROJ.find(x=>x.id===id);
+  if(!p)return;
+  setProjProgress(id,(+p.progress||0)+delta);
+}
+function addProj(){
+  const inp=document.getElementById("pname");
+  const prg=document.getElementById("pprog");
+  if(!inp||!inp.value.trim())return;
+  const initProg=clampPct(+prg?.value||0);
+  PROJ.push({id:Date.now(),name:inp.value.trim(),progress:initProg,color:COLORS[PROJ.length%COLORS.length]});
+  save("tm_proj",PROJ);render();
+}
+function delProj(id){PROJ=PROJ.filter(p=>p.id!==id);save("tm_proj",PROJ);render();}
+
+// ══════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════
+function rTasks(){
+  const pending=TASKS.filter(t=>!t.done).length;
+  const dailyPending=DAILY_TASKS.filter(d=>!isDailyDone(d.id)).length;
+  const dailyRows=DAILY_TASKS.map(dailyTaskHtml).join("");
+  const rows=TASKS.map(t=>`
+    <div class="ti ${t.done?"dn":""}" data-tid="${t.id}">
+      <div class="chk">${t.done?"✓":""}</div>
+      <div class="pd p${t.priority[0]}"></div>
+      <span class="tt">${esc(t.text)}</span>
+      <span class="tbg">${t.priority==="high"?"عاجل":t.priority==="medium"?"متوسط":"منخفض"}</span>
+      <button class="delbtn" onclick="delTask(${t.id},event)">✕</button>
+    </div>`).join("");
+
+  return `
+    ${card(`
+      ${ctitle(`⏰ المهام اليومية المجدولة — ${dailyPending} متبقية اليوم`)}
+      <div style="padding-top:6px">${dailyRows}</div>
+      <div style="font-size:10px;color:#64748b;margin-top:6px;text-align:center">تُعاد هذه المهام تلقائياً كل يوم</div>
+    `)}
+    ${card(`
+      ${ctitle("➕ مهمة جديدة")}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="tinp" class="inp" placeholder="أدخل المهمة..."/>
+        <select id="tpri" style="background:rgba(10,20,40,.85);border:1px solid rgba(0,212,255,.2);border-radius:9px;padding:9px 12px;color:#e2e8f0;font-family:'Cairo',sans-serif;font-size:13px;outline:none;cursor:pointer">
+          <option value="high">🔴 عاجل</option>
+          <option value="medium" selected>🟡 متوسط</option>
+          <option value="low">🟢 منخفض</option>
+        </select>
+        <button class="btn" onclick="addTask()">إضافة</button>
+      </div>
+    `)}
+    ${card(`
+      ${ctitle(`📌 المهام — ${pending} متبقية`)}
+      <div class="tasks-list">${rows||'<div style="text-align:center;color:#64748b;padding:20px">🎉 أنجزت كل المهام!</div>'}</div>
+    `)}`;
+}
+function addTask(){
+  const t=document.getElementById("tinp"),p=document.getElementById("tpri");
+  if(!t||!t.value.trim())return;
+  TASKS.push({id:Date.now(),text:t.value.trim(),done:false,priority:p.value});
+  save("tm_tasks",TASKS);render();
+}
+function delTask(id,e){e.stopPropagation();TASKS=TASKS.filter(t=>t.id!==id);save("tm_tasks",TASKS);render();}
+function toggleTask(id){TASKS=TASKS.map(t=>t.id===id?{...t,done:!t.done}:t);save("tm_tasks",TASKS);render();}
+
+// ══════════════════════════════════════════
+// EMAIL INBOX — analyzed snapshot (21-22 Apr 2026)
+// ══════════════════════════════════════════
+let EMAIL_LANG=load("tm_email_lang","ar");
+let EMAIL_FILTER=load("tm_email_filter","all");
+let EMAIL_LAST=load("tm_email_last","22 أبريل 2026 · تحليل أولي");
+let GMAIL_URL=load("tm_gmail_url","");
+let EMAIL_BUSY=false;
+
+const DEFAULT_EMAILS=[
+  {
+    id:"deliveroo",
+    subject_en:"Eathos Deliveroo Integration — Orders Not Landing in POS",
+    subject_ar:"خلل تكامل Deliveroo مع Eathos — الطلبات لا تصل للـ POS",
+    from:"Mark Anthony (Restroworks) + Ahmed Salah",
+    date:"2026-04-21",
+    time:"17:59 → 13:46",
+    priority:"high",
+    urgent:true,
+    status_en:"URGENT — Active investigation",
+    status_ar:"عاجل — تحت التحقيق",
+    body_en:"High volume of reports last night that Deliveroo orders are NOT reaching the POS. Abhishek & Zeeshan investigating. Ahmed flagged that Kababji UAE has the SAME issue today — some orders land, others don't. Customer is making complaints. Order IDs shared with dev team.",
+    body_ar:"عدد كبير من التقارير البارحة بأن طلبات Deliveroo لا تصل إلى الـ POS. أبيشك وزيشان يحققان. أحمد أبلغ أن Kababji UAE عنده نفس المشكلة اليوم — بعض الطلبات تصل والبعض لا. العميل يشتكي. معرفات الطلبات شُورِكت مع فريق التطوير.",
+    action_en:"Follow up with Abhishek Mehta today — get ETA on fix. Escalate to Iliyas if no update by EOD.",
+    action_ar:"تابع مع أبيشك مهتا اليوم — احصل على موعد تقريبي للإصلاح. صعّد لإلياس إذا لم يصل تحديث بنهاية اليوم."
+  },
+  {
+    id:"emaar",
+    subject_en:"EMAAR API Solution — 2 New Restaurants to Implement",
+    subject_ar:"EMAAR API — تطبيق مطعمين جديدين",
+    from:"Binny Goradia (Emaar) → Ali Alhusseini + CC Ahmed",
+    date:"2026-04-21",
+    time:"12:29",
+    priority:"high",
+    status_en:"Action required — Initiate implementation",
+    status_ar:"إجراء مطلوب — بدء التنفيذ",
+    body_en:"2 new Eathos restaurants need API implementation: Sushi Art (TDM-LG-116, t0020390) and Rosa's Thai (TDM-LG-108, t0020387). Emaar requests initiation from Restroworks side.",
+    body_ar:"مطعمان جديدان لـ Eathos يحتاجان تطبيق API: Sushi Art (TDM-LG-116, t0020390) و Rosa's Thai (TDM-LG-108, t0020387). Emaar يطلب بدء التنفيذ من جانب Restroworks.",
+    action_en:"Coordinate with Priya Mishra & Mark to kick off implementation. Share timeline back to Binny.",
+    action_ar:"نسّق مع بريا ميشرا ومارك لبدء التنفيذ. أرسل الجدول الزمني لبيني."
+  },
+  {
+    id:"aldhaid",
+    subject_en:"Souq Al Dhaid IoT Device — Not Functioning Since Day 1",
+    subject_ar:"جهاز IoT في Souq Al Dhaid — لا يعمل من اليوم الأول",
+    from:"Mohammed Atoof (DDUAE)",
+    date:"2026-04-21",
+    time:"13:02",
+    priority:"high",
+    status_en:"Customer complaint — Follow-up",
+    status_ar:"شكوى عميل — متابعة",
+    body_en:"DDUAE follow-up: IoT device received for Al Dhaid store on March 23rd still not working. Customer notified Raheesh earlier with no resolution. Asking for urgent action.",
+    body_ar:"متابعة من DDUAE: جهاز IoT الذي تم استلامه لفرع الذيد في 23 مارس لا يزال لا يعمل. العميل أبلغ رهيش سابقاً دون حل. يطلب إجراء عاجل.",
+    action_en:"Check with Raheesh Jangra on diagnosis status. Arrange replacement device if needed.",
+    action_ar:"تحقق مع رهيش جانغرا من حالة التشخيص. رتّب جهاز بديل عند الحاجة."
+  },
+  {
+    id:"kababji-tap",
+    subject_en:"Kababji × Tap Payments — Meeting Scheduling",
+    subject_ar:"Kababji × Tap Payments — تحديد موعد اجتماع",
+    from:"Sara Ahmed (Tap Payments)",
+    date:"2026-04-21",
+    time:"15:32",
+    priority:"med",
+    status_en:"Waiting — Ahmed to propose slots tomorrow",
+    status_ar:"انتظار — أحمد سيقترح أوقاتاً غداً",
+    body_en:"Tap Payments requests 2-3 time slots for meeting on Kababji requirements. Ahmed replied he needs to check with Kababji team and will revert tomorrow.",
+    body_ar:"Tap Payments طلبت 2-3 أوقات متاحة لاجتماع حول متطلبات Kababji. أحمد أجاب أنه يحتاج للتأكد مع فريق Kababji وسيرد غداً.",
+    action_en:"Call Kababji team tomorrow (Apr 22) to align on availability, then reply Sara with 2-3 slots.",
+    action_ar:"اتصل بفريق Kababji غداً (22 أبريل) للتأكد من الأوقات المتاحة، ثم ردّ على سارة بـ 2-3 مواعيد."
+  },
+  {
+    id:"kababji-recipe",
+    subject_en:"Kababji Items Recipe — Review Before Call",
+    subject_ar:"وصفات عناصر Kababji — مراجعة قبل الاجتماع",
+    from:"Walid Elias (Kababji) → Ahmed → Mark",
+    date:"2026-04-21",
+    time:"14:08 → 14:20",
+    priority:"med",
+    status_en:"Awaiting — Mark to review before call",
+    status_ar:"في الانتظار — مارك يراجع قبل الاجتماع",
+    body_en:"Walid sent complete Kababji items recipe file. Ahmed forwarded to Mark Anthony Mesias for review before tomorrow's OPS call with team.",
+    body_ar:"وليد أرسل ملف الوصفات الكامل لعناصر Kababji. أحمد أعاد توجيه الملف لمارك أنتوني ميسياس للمراجعة قبل اجتماع OPS غداً.",
+    action_en:"Confirm Mark reviewed. Prepare discussion points with OPS team.",
+    action_ar:"تأكد أن مارك راجع الملف. جهّز نقاط النقاش مع فريق OPS."
+  },
+  {
+    id:"noon-receipt",
+    subject_en:"Noon Food Receipt Format — Change Request",
+    subject_ar:"تغيير صيغة إيصال Noon Food",
+    from:"Kshitij Agarwal (Restroworks)",
+    date:"2026-04-21",
+    time:"07:26",
+    priority:"med",
+    status_en:"Internal — Verify fix",
+    status_ar:"داخلي — تحقق من الإصلاح",
+    body_en:"Kababji UAE requested to show first 4 digits of Noon Food billing receipt instead of last. Kshitij confirms fix should be sorted — asking Mark to verify.",
+    body_ar:"Kababji UAE طلبت عرض أول 4 أرقام من إيصال Noon Food بدلاً من الأخيرة. Kshitij يؤكد أن الإصلاح يجب أن يكون جاهزاً — يطلب من مارك التحقق.",
+    action_en:"Coordinate verification with Mark; confirm with Kababji manager once validated.",
+    action_ar:"نسّق التحقق مع مارك؛ أكّد مع مدير Kababji بعد التحقق."
+  },
+  {
+    id:"kt-vouchers",
+    subject_en:"KT Vouchers — POS Hang Issue",
+    subject_ar:"قسائم KT — تعطل POS",
+    from:"Hany Sherif (Galadari Brothers)",
+    date:"2026-04-21",
+    time:"07:17",
+    priority:"med",
+    status_en:"Awaiting — Iliyas investigation",
+    status_ar:"في الانتظار — إلياس يحقق",
+    body_en:"Follow-up from Hany: Cashier tried to punch orders with KT vouchers, POS hung, vouchers were redeemed but the order wasn't punched. Need root cause and fix.",
+    body_ar:"متابعة من هاني: الكاشير حاول تسجيل طلبات بقسائم KT، تعطل POS، القسائم استُهلكت لكن الطلب لم يُسجل. يحتاج تحديد السبب والإصلاح.",
+    action_en:"Check with Iliyas on progress. Respond to Hany with ETA.",
+    action_ar:"تحقق مع إلياس من التقدم. ردّ على هاني بموعد تقريبي."
+  },
+  {
+    id:"cool-mood",
+    subject_en:"POSIST × Cool Mood — Mother's Day Muffins",
+    subject_ar:"POSIST × Cool Mood — كب كيك عيد الأم",
+    from:"Hany Sherif → Ahmed",
+    date:"2026-04-21",
+    time:"08:13",
+    priority:"done",
+    status_en:"✓ Done",
+    status_ar:"✓ مُنجز",
+    body_en:"Ahmed replied 'Done' on Mother's Day special muffins setup for Cool Mood Cafe.",
+    body_ar:"أحمد ردّ 'Done' على إعداد كب كيك عيد الأم لـ Cool Mood Cafe.",
+    action_en:"Closed. Monitor for any post-implementation feedback.",
+    action_ar:"مُغلق. تابع أي ملاحظات بعد التنفيذ."
+  },
+  {
+    id:"noon-meal",
+    subject_en:"Noon Meal Category — Removed",
+    subject_ar:"فئة Noon Meal — تمت الإزالة",
+    from:"Jasir Abdul Khader (Galadari) → Ahmed",
+    date:"2026-04-21",
+    time:"06:37",
+    priority:"done",
+    status_en:"✓ Done",
+    status_ar:"✓ مُنجز",
+    body_en:"Jasir requested removal of Noon meal plan category from NOON menu. Ahmed confirmed done, awaiting Jasir's verification.",
+    body_ar:"جاسر طلب إزالة فئة Noon meal plan من قائمة NOON. أحمد أكد الانتهاء، في انتظار تحقق جاسر.",
+    action_en:"Await Jasir's confirmation. No further action unless issues reported.",
+    action_ar:"انتظر تأكيد جاسر. لا إجراء إضافي إلا عند الإبلاغ عن مشاكل."
+  }
+];
+let EMAILS=load("tm_emails",DEFAULT_EMAILS);
+
+function rEmail(){
+  const L=EMAIL_LANG;
+  const T={
+    ar:{title:"📧 بريد اليوم والأمس — تحليل",sub:"21-22 أبريل 2026",
+        total:"إجمالي",urgent:"عاجل",wait:"بانتظار",done:"مُنجز",
+        all:"الكل",high:"عاجل",med:"متوسط",doneF:"مُنجز",
+        from:"من",action:"الإجراء المطلوب",empty:"لا رسائل في هذه الفئة"},
+    en:{title:"📧 Today & Yesterday's Email Analysis",sub:"Apr 21-22, 2026",
+        total:"Total",urgent:"Urgent",wait:"Awaiting",done:"Done",
+        all:"All",high:"High",med:"Medium",doneF:"Done",
+        from:"From",action:"Action Required",empty:"No emails in this category"}
+  }[L];
+  const urgentN=EMAILS.filter(e=>e.urgent||e.priority==="high").length;
+  const waitN=EMAILS.filter(e=>e.priority==="med").length;
+  const doneN=EMAILS.filter(e=>e.priority==="done").length;
+  let filtered=EMAILS;
+  if(EMAIL_FILTER==="high")filtered=EMAILS.filter(e=>e.priority==="high");
+  else if(EMAIL_FILTER==="med")filtered=EMAILS.filter(e=>e.priority==="med");
+  else if(EMAIL_FILTER==="done")filtered=EMAILS.filter(e=>e.priority==="done");
+
+  const cards=filtered.length?filtered.map(e=>{
+    const subj=L==="ar"?e.subject_ar:e.subject_en;
+    const body=L==="ar"?e.body_ar:e.body_en;
+    const action=L==="ar"?e.action_ar:e.action_en;
+    const status=L==="ar"?e.status_ar:e.status_en;
+    const pLabel=e.priority==="high"?(L==="ar"?"عاجل":"High"):
+                 e.priority==="med"?(L==="ar"?"متوسط":"Medium"):
+                 (L==="ar"?"مُنجز":"Done");
+    return `<div class="em-card ${L==="en"?"ltr":""}" data-p="${e.priority}">
+      <div class="em-h">
+        <div class="em-subj">${esc(subj)}</div>
+        <div class="em-meta">
+          ${e.urgent?`<span class="em-badge urgent">⚡ ${L==="ar"?"عاجل جداً":"URGENT"}</span>`:""}
+          <span class="em-badge ${e.priority}">${pLabel}</span>
+          <span class="em-time">${e.date} · ${e.time}</span>
+        </div>
+      </div>
+      <div class="em-from">👤 ${T.from}: ${esc(e.from)}</div>
+      <div class="em-body">${esc(body)}</div>
+      <div class="em-action"><strong>${T.action}:</strong> ${esc(action)}</div>
+      <div style="font-size:10px;color:#64748b;margin-top:6px">📍 ${esc(status)}</div>
+    </div>`;
+  }).join(""):`<div style="text-align:center;color:#64748b;padding:30px">${T.empty}</div>`;
+
+  return card(`
+    ${ctitle(`${T.title} — ${T.sub}`)}
+    <div class="em-wrap">
+      <div class="em-top">
+        <div class="em-stats" style="flex:1">
+          <div class="em-stat"><div class="em-stat-num">${EMAILS.length}</div><div class="em-stat-lbl">${T.total}</div></div>
+          <div class="em-stat urg"><div class="em-stat-num">${urgentN}</div><div class="em-stat-lbl">${T.urgent}</div></div>
+          <div class="em-stat wait"><div class="em-stat-num">${waitN}</div><div class="em-stat-lbl">${T.wait}</div></div>
+          <div class="em-stat done"><div class="em-stat-num">${doneN}</div><div class="em-stat-lbl">${T.done}</div></div>
+        </div>
+        <div class="em-actions">
+          <button class="em-refresh" id="emRef" onclick="refreshEmails()" title="${L==='ar'?'تحديث من Gmail':'Refresh from Gmail'}">
+            <span class="rf-ic">🔄</span>
+            <span>${L==='ar'?'تحديث':'Refresh'}</span>
+          </button>
+          <div class="em-lang">
+            <button class="${L==='ar'?'on':''}" onclick="setEmailLang('ar')">عربي</button>
+            <button class="${L==='en'?'on':''}" onclick="setEmailLang('en')">EN</button>
+          </div>
+        </div>
+      </div>
+      <div class="em-last">
+        ${EMAIL_LAST?`<span>${L==='ar'?'آخر تحديث':'Last refresh'}: ${esc(EMAIL_LAST)}</span>`:""}
+        <span style="margin:0 8px;opacity:.3">|</span>
+        <span style="cursor:pointer;color:${GMAIL_URL?'#22c55e':'#f59e0b'}" onclick="showGmailSetupModal()" title="${L==='ar'?'إعداد Gmail':'Gmail settings'}">
+          ${GMAIL_URL?'🟢 Gmail '+(L==='ar'?'متصل':'connected'):'🟡 '+(L==='ar'?'اضغط للإعداد':'Click to setup')}
+        </span>
+        ${GMAIL_URL?`<span style="margin-${L==='ar'?'right':'left'}:8px;cursor:pointer;color:#94a3b8" onclick="clearGmailUrl()" title="${L==='ar'?'حذف':'Remove'}">✕</span>`:""}
+      </div>
+      <div class="em-filters">
+        <button class="em-fb ${EMAIL_FILTER==='all'?'on':''}" onclick="setEmailFilter('all')">${T.all} (${EMAILS.length})</button>
+        <button class="em-fb ${EMAIL_FILTER==='high'?'on':''}" onclick="setEmailFilter('high')">🔴 ${T.high} (${EMAILS.filter(e=>e.priority==='high').length})</button>
+        <button class="em-fb ${EMAIL_FILTER==='med'?'on':''}" onclick="setEmailFilter('med')">🟡 ${T.med} (${EMAILS.filter(e=>e.priority==='med').length})</button>
+        <button class="em-fb ${EMAIL_FILTER==='done'?'on':''}" onclick="setEmailFilter('done')">🟢 ${T.doneF} (${doneN})</button>
+      </div>
+      <div class="em-list">${cards}</div>
+    </div>
+  `,"cf");
+}
+function setEmailLang(l){EMAIL_LANG=l;save("tm_email_lang",l);render();}
+function setEmailFilter(f){EMAIL_FILTER=f;save("tm_email_filter",f);render();}
+
+// Google Apps Script code the user deploys as a Web App (JSONP-enabled to bypass CORS):
+const APPS_SCRIPT_CODE=`function doGet(e){
+  var p = (e && e.parameter) || {};
+  var hours = parseInt(p.hours) || 48;
+  var cutoff = new Date(Date.now() - hours*60*60*1000);
+  var q = 'after:' + Utilities.formatDate(cutoff,'UTC','yyyy/MM/dd');
+  var threads = GmailApp.search(q, 0, 50);
+  var out = [];
+  threads.forEach(function(t){
+    var msgs = t.getMessages();
+    var m = msgs[msgs.length-1];
+    if(m.getDate() < cutoff) return;
+    out.push({
+      id: m.getId(),
+      threadId: t.getId(),
+      subject: m.getSubject() || '(no subject)',
+      from: m.getFrom(),
+      to: m.getTo(),
+      date: m.getDate().toISOString(),
+      snippet: (m.getPlainBody()||'').substring(0,1200),
+      isUnread: m.isUnread(),
+      labels: t.getLabels().map(function(l){return l.getName();})
+    });
+  });
+  var payload = {ok:true, emails:out, fetched:new Date().toISOString()};
+  var json = JSON.stringify(payload);
+  if (p.callback) {
+    return ContentService
+      .createTextOutput(p.callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+// JSONP helper — bypasses CORS by injecting a <script> tag
+function jsonpFetch(url, params, timeoutMs){
+  return new Promise(function(resolve, reject){
+    var cb = '_jp_' + Math.random().toString(36).slice(2,10);
+    var qs = Object.keys(params||{}).map(function(k){
+      return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
+    }).concat(['callback='+cb,'_='+Date.now()]).join('&');
+    var fullUrl = url + (url.indexOf('?')>=0?'&':'?') + qs;
+    var script = document.createElement('script');
+    var tmo = setTimeout(function(){cleanup();reject(new Error('Request timeout — check that the deployment is Public'));}, timeoutMs||45000);
+    function cleanup(){clearTimeout(tmo);try{delete window[cb];}catch(e){window[cb]=undefined;}script.remove();}
+    window[cb] = function(data){cleanup();resolve(data);};
+    script.onerror = function(){cleanup();reject(new Error('Failed to load — check the URL or network'));};
+    script.src = fullUrl;
+    document.body.appendChild(script);
+  });
+}
+
+function refreshEmails(){
+  const L=EMAIL_LANG;
+  if(!GMAIL_URL){ showGmailSetupModal(); return; }
+  doRefreshEmails();
+}
+
+async function doRefreshEmails(){
+  const L=EMAIL_LANG;
+  const btn=document.getElementById("emRef");
+  if(EMAIL_BUSY)return;
+  EMAIL_BUSY=true;
+  if(btn){btn.classList.add("spinning");btn.querySelector("span:last-child").textContent=L==='ar'?"جاري الجلب...":"Fetching...";}
+  try{
+    const data=await jsonpFetch(GMAIL_URL,{hours:48});
+    if(!data||!data.ok||!Array.isArray(data.emails))throw new Error("Invalid response — make sure you re-deployed after pasting the new code");
+    const raw=data.emails;
+    if(raw.length===0){
+      alert(L==='ar'?"لا توجد رسائل جديدة خلال آخر 48 ساعة":"No new emails in the last 48 hours");
+      EMAIL_LAST=new Date().toLocaleString(L==='ar'?'ar-EG':'en-US');
+      save("tm_email_last",EMAIL_LAST);
+      return;
+    }
+    // Heuristic mapping into our format
+    let mapped=raw.map(rawToEmail);
+    // Save heuristic-only first so user sees something even if analysis fails
+    EMAILS=mapped;
+    save("tm_emails",EMAILS);
+    render();
+    // Optional: Claude-powered analysis (translation + priority + action) — by batches
+    let analysisErr=null;
+    if(AI_KEY){
+      try{
+        await analyzeAllEmailsByBatches(mapped, btn, L);
+        EMAILS=mapped;
+        save("tm_emails",EMAILS);
+      }catch(e){
+        console.warn("Claude analysis failed:",e);
+        analysisErr=e.message;
+      }
+    }
+    EMAIL_LAST=new Date().toLocaleString(L==='ar'?'ar-EG':'en-US')+" · "+mapped.length+(L==='ar'?" رسالة":" msgs")+(AI_KEY?(analysisErr?" · ⚠️":" · 🤖"):"");
+    save("tm_email_last",EMAIL_LAST);
+    render();
+    if(!AI_KEY)alert(L==='ar'?"💡 لتفعيل تلخيص ذكي وترجمة عربية، أدخل مفتاح Anthropic API في تبويب \"المساعد الذكي\"":"💡 To enable smart summaries and Arabic translation, set your Anthropic API key in the AI Assistant tab");
+    else if(analysisErr)alert((L==='ar'?"⚠️ التحليل الذكي فشل جزئياً: ":"⚠️ Smart analysis partially failed: ")+analysisErr);
+  }catch(err){
+    console.error(err);
+    alert((L==='ar'?"فشل التحديث: ":"Refresh failed: ")+err.message+"\n\n"+(L==='ar'?"خطوات الإصلاح:\n1. حدّث كود Apps Script بالنسخة الجديدة (تدعم JSONP)\n2. Deploy → Manage deployments → ✏️ → Version: New version → Deploy\n3. تحقق أن النشر Public (Anyone)":"Fix steps:\n1. Update Apps Script with the new code (JSONP-enabled)\n2. Deploy → Manage deployments → ✏️ → Version: New version → Deploy\n3. Ensure deployment is Public (Anyone)"));
+  }finally{
+    EMAIL_BUSY=false;
+    if(btn){btn.classList.remove("spinning");btn.querySelector("span:last-child").textContent=L==='ar'?"تحديث":"Refresh";}
+  }
+}
+
+function cleanSnippet(s){
+  if(!s)return"";
+  return String(s)
+    .replace(/\r\n|\r|\n/g," ")
+    .replace(/\[image:[^\]]+\]/g,"")
+    .replace(/<[^>]+>/g,"")
+    .replace(/https?:\/\/\S+/g,"[رابط]")
+    .replace(/\s{2,}/g," ")
+    .trim();
+}
+
+function rawToEmail(r){
+  const d=new Date(r.date);
+  const datePart=d.toISOString().slice(0,10);
+  const timePart=d.toTimeString().slice(0,5);
+  const subj=r.subject||"(no subject)";
+  const sender=(r.from||"").replace(/<[^>]+>/g,"").trim();
+  const cleanBody=cleanSnippet(r.snippet);
+  // Heuristic priority
+  const txt=(subj+" "+cleanBody).toLowerCase();
+  let priority="med",urgent=false;
+  if(/\b(urgent|asap|immediately|critical|emergency)\b/.test(txt)||/(عاجل|فوري|حرج)/.test(txt)){priority="high";urgent=true;}
+  else if(/\b(deadline|today|tomorrow|important)\b/.test(txt)||/(حالاً|اليوم|غداً|مهم)/.test(txt))priority="high";
+  else if(/\b(confirmed|approved|completed|received|receipt|invoice|newsletter)\b/.test(txt)||/(شكر|تم|منجز)/.test(txt))priority="done";
+  const shortBody=cleanBody.substring(0,500);
+  return {
+    id:r.id,
+    subject_en:subj,
+    subject_ar:subj,
+    from:sender||r.from||"unknown",
+    date:datePart,
+    time:timePart,
+    priority,
+    urgent,
+    status_en:r.isUnread?"Unread":"Read",
+    status_ar:r.isUnread?"غير مقروءة":"مقروءة",
+    body_en:shortBody,
+    body_ar:shortBody,
+    action_en:"(awaiting analysis)",
+    action_ar:"(بانتظار التحليل)"
+  };
+}
+
+async function analyzeAllEmailsByBatches(items, btn, L){
+  const BATCH_SIZE=3;
+  const total=items.length;
+  let done=0, errors=0;
+  for(let i=0;i<total;i+=BATCH_SIZE){
+    const slice=items.slice(i,i+BATCH_SIZE);
+    if(btn)btn.querySelector("span:last-child").textContent=
+      (L==='ar'?`تحليل ${done+1}-${Math.min(done+BATCH_SIZE,total)}/${total}`:`Analyzing ${done+1}-${Math.min(done+BATCH_SIZE,total)}/${total}`);
+    try{
+      await analyzeBatch(slice);
+    }catch(e){
+      console.warn("batch failed:",e);
+      errors++;
+    }
+    done+=slice.length;
+    // live refresh after each batch
+    EMAILS=items;
+    save("tm_emails",EMAILS);
+    if(document.querySelector(".em-list"))render();
+  }
+  if(errors>0&&errors===Math.ceil(total/BATCH_SIZE))throw new Error(L==='ar'?"كل الدفعات فشلت":"All batches failed");
+}
+
+async function analyzeBatch(batch){
+  // Build compact input
+  const input=batch.map((e,i)=>`[${i+1}]
+Subject: ${e.subject_en}
+From: ${e.from}
+Date: ${e.date} ${e.time}
+Body: ${e.body_en.substring(0,600)}`).join("\n\n");
+
+  const sys=`You are Ahmed Salah's email triage assistant (he works at Restroworks, a restaurant POS company; clients include Eathos, Sushi Art, Kababji, Rosa's Thai). For EACH email, output BOTH Arabic and English:
+- subject_ar: Arabic translation of subject
+- body_ar: 1-2 sentence Arabic summary
+- body_en: 1-2 sentence English summary
+- action_ar: required action in Arabic (clear, actionable)
+- action_en: required action in English
+- priority: "high" (urgent/blocker/needs-Ahmed), "med" (FYI/track), or "done" (completed/notification/newsletter)
+- urgent: true ONLY for time-critical issues
+
+Return ONLY a JSON object, no markdown, no explanation:
+{"emails":[{"i":1,"subject_ar":"","body_en":"","body_ar":"","action_en":"","action_ar":"","priority":"high","urgent":false}, ...]}`;
+
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key":AI_KEY,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body:JSON.stringify({
+      model:AI_MODEL||"claude-haiku-4-5-20251001",
+      max_tokens:2048,
+      system:sys,
+      messages:[{role:"user",content:input}]
+    })
+  });
+  const d=await res.json();
+  if(!res.ok)throw new Error(d?.error?.message||("HTTP "+res.status));
+  let txt=d.content?.[0]?.text||"";
+  // Strip code fences if Claude wrapped JSON
+  txt=txt.replace(/^```(?:json)?\s*/,"").replace(/\s*```\s*$/,"").trim();
+  const jm=txt.match(/\{[\s\S]*\}/);
+  if(!jm)throw new Error("No JSON in response");
+  let parsed;
+  try{parsed=JSON.parse(jm[0]);}
+  catch(e){throw new Error("Invalid JSON: "+e.message);}
+  if(!Array.isArray(parsed.emails))throw new Error("Missing emails array");
+  parsed.emails.forEach(a=>{
+    const idx=(a.i||1)-1;
+    if(!batch[idx])return;
+    if(a.subject_ar)batch[idx].subject_ar=a.subject_ar;
+    if(a.body_en)batch[idx].body_en=a.body_en;
+    if(a.body_ar)batch[idx].body_ar=a.body_ar;
+    if(a.action_en)batch[idx].action_en=a.action_en;
+    if(a.action_ar)batch[idx].action_ar=a.action_ar;
+    if(a.priority&&["high","med","done"].includes(a.priority))batch[idx].priority=a.priority;
+    if(typeof a.urgent==="boolean")batch[idx].urgent=a.urgent;
+  });
+}
+
+function showGmailSetupModal(){
+  const L=EMAIL_LANG;
+  const T=L==='ar'?{
+    title:"⚙️ إعداد Gmail — مرة واحدة فقط",
+    intro:"نحتاج رابط Apps Script ليجلب رسائلك من Gmail تلقائياً. اتّبع:",
+    s1:"افتح script.google.com وأنشئ مشروع جديد",
+    s2:"الصِق الكود أدناه واحفظ (اسمه مثلاً \"Ahmed Gmail\")",
+    s3:"Deploy → New deployment → نوع: Web app → Execute as: Me → Who has access: Anyone → Deploy",
+    s4:"انسخ رابط الـ Web App وألصقه هنا:",
+    code:"كود Apps Script (اضغط للنسخ)",
+    copied:"✓ تم النسخ",
+    url:"رابط Web App",
+    save:"حفظ وتحديث",
+    cancel:"إلغاء",
+    open:"فتح script.google.com"
+  }:{
+    title:"⚙️ Gmail Setup — One-time",
+    intro:"We need an Apps Script URL to auto-fetch your Gmail. Steps:",
+    s1:"Open script.google.com and create a new project",
+    s2:"Paste the code below and save (e.g. \"Ahmed Gmail\")",
+    s3:"Deploy → New deployment → type: Web app → Execute as: Me → Who has access: Anyone → Deploy",
+    s4:"Copy the Web App URL and paste it here:",
+    code:"Apps Script code (click to copy)",
+    copied:"✓ Copied",
+    url:"Web App URL",
+    save:"Save & Refresh",
+    cancel:"Cancel",
+    open:"Open script.google.com"
+  };
+  const bg=document.createElement("div");
+  bg.className="em-modal-bg";
+  bg.innerHTML=`
+    <div class="em-modal" dir="${L==='ar'?'rtl':'ltr'}" style="max-width:640px">
+      <h3>${T.title}</h3>
+      <p>${T.intro}</p>
+      <div class="step"><b>1</b><div>${T.s1} <button class="mbtn ghost" style="padding:3px 10px;font-size:10px" onclick="window.open('https://script.google.com','_blank')">🔗 ${T.open}</button></div></div>
+      <div class="step"><b>2</b><div>${T.s2}</div></div>
+      <div style="background:#030712;border:1px solid rgba(0,212,255,.25);border-radius:8px;padding:10px;margin:8px 0;
+        font-family:'Courier New',monospace;font-size:10.5px;color:#94f3ff;max-height:180px;overflow:auto;cursor:pointer;direction:ltr;text-align:left;white-space:pre"
+        title="${T.code}"
+        onclick="navigator.clipboard.writeText(this.dataset.code);this.style.background='rgba(34,197,94,.15)';setTimeout(()=>{this.style.background='#030712'},800)"
+        data-code="${esc(APPS_SCRIPT_CODE)}">${esc(APPS_SCRIPT_CODE)}</div>
+      <div class="step"><b>3</b><div>${T.s3}</div></div>
+      <div class="step"><b>4</b><div>${T.s4}</div></div>
+      <input id="gmUrlInput" type="url" placeholder="https://script.google.com/macros/s/..../exec" value="${esc(GMAIL_URL)}"
+        style="width:100%;padding:9px 12px;background:rgba(10,20,40,.7);border:1px solid rgba(0,212,255,.3);
+        border-radius:8px;color:#e2e8f0;font-size:12px;font-family:'Courier New',monospace;direction:ltr"/>
+      <div class="em-modal-row">
+        <button class="mbtn ghost" onclick="this.closest('.em-modal-bg').remove()">${T.cancel}</button>
+        <button class="mbtn" onclick="saveGmailUrl()">${T.save}</button>
+      </div>
+    </div>`;
+  bg.addEventListener("click",ev=>{if(ev.target===bg)bg.remove();});
+  document.body.appendChild(bg);
+}
+
+function saveGmailUrl(){
+  const v=document.getElementById("gmUrlInput").value.trim();
+  if(!v){alert(EMAIL_LANG==='ar'?"الصق الرابط أولاً":"Paste the URL first");return;}
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/.test(v)){
+    if(!confirm(EMAIL_LANG==='ar'?"الرابط لا يطابق الشكل المتوقع. هل تريد حفظه؟":"URL format looks unusual. Save anyway?"))return;
+  }
+  GMAIL_URL=v;
+  save("tm_gmail_url",GMAIL_URL);
+  document.querySelector(".em-modal-bg")?.remove();
+  doRefreshEmails();
+}
+
+function clearGmailUrl(){
+  if(!confirm(EMAIL_LANG==='ar'?"حذف رابط Gmail؟":"Remove Gmail URL?"))return;
+  GMAIL_URL="";save("tm_gmail_url","");render();
+}
+
+// ══════════════════════════════════════════
+// MARKET TAB — Gold, Silver, EGP/AED (Claude web_search)
+// ══════════════════════════════════════════
+let MARKET_DATA=load("tm_market",{
+  date:"2026-04-23",
+  source:"بيانات أولية (Goodreturns / LivePriceofGold / Wise)",
+  gold:{carat_24:573, carat_22:530.5, carat_18:434},
+  silver:{per_gram:12.9, per_ounce:401.24, per_kg:12900},
+  fx:{egp_per_aed:14.09, aed_per_egp:0.071}
+});
+let MARKET_BUSY=false;
+let MARKET_RANGE=load("tm_market_range",30); // 7, 30, or 90 days
+let MARKET_CHART_INSTANCES={};
+
+// Seed history (~90 days) — random walk around current values
+function generateMarketSeed(){
+  const out=[];
+  const todayStr=new Date().toISOString().slice(0,10);
+  const cur=MARKET_DATA;
+  const base={
+    g24:cur.gold.carat_24, g22:cur.gold.carat_22, g18:cur.gold.carat_18,
+    sg:cur.silver.per_gram, soz:cur.silver.per_ounce, skg:cur.silver.per_kg,
+    fx:cur.fx.egp_per_aed
+  };
+  for(let i=90;i>=1;i--){
+    const d=new Date();
+    d.setDate(d.getDate()-i);
+    // Composite oscillation for realistic-looking trend
+    const w=Math.sin(i*0.18)*0.025 + Math.cos(i*0.31)*0.015 + Math.sin(i*0.55)*0.008;
+    const sw=w*1.7; // silver more volatile
+    const fw=w*0.4; // fx less volatile
+    out.push({
+      date:d.toISOString().slice(0,10),
+      g24:+(base.g24*(1-w)).toFixed(2),
+      g22:+(base.g22*(1-w)).toFixed(2),
+      g18:+(base.g18*(1-w)).toFixed(2),
+      sg:+(base.sg*(1-sw)).toFixed(2),
+      soz:+(base.soz*(1-sw)).toFixed(2),
+      skg:+(base.skg*(1-sw)).toFixed(0),
+      fx:+(base.fx*(1-fw)).toFixed(3)
+    });
+  }
+  // Today as latest
+  out.push({date:todayStr,g24:base.g24,g22:base.g22,g18:base.g18,sg:base.sg,soz:base.soz,skg:base.skg,fx:base.fx});
+  return out;
+}
+let MARKET_HISTORY=load("tm_market_history",null)||generateMarketSeed();
+if(!load("tm_market_history",null)){save("tm_market_history",MARKET_HISTORY);}
+
+function appendHistoryFromCurrent(){
+  const today=MARKET_DATA.date||new Date().toISOString().slice(0,10);
+  const point={
+    date:today,
+    g24:MARKET_DATA.gold.carat_24,
+    g22:MARKET_DATA.gold.carat_22,
+    g18:MARKET_DATA.gold.carat_18,
+    sg:MARKET_DATA.silver.per_gram,
+    soz:MARKET_DATA.silver.per_ounce,
+    skg:MARKET_DATA.silver.per_kg,
+    fx:MARKET_DATA.fx.egp_per_aed
+  };
+  // Replace if same date already exists
+  const idx=MARKET_HISTORY.findIndex(p=>p.date===today);
+  if(idx>=0)MARKET_HISTORY[idx]=point;
+  else MARKET_HISTORY.push(point);
+  // Cap at 180 days
+  if(MARKET_HISTORY.length>180)MARKET_HISTORY=MARKET_HISTORY.slice(-180);
+  save("tm_market_history",MARKET_HISTORY);
+}
+
+function setMarketRange(n){MARKET_RANGE=n;save("tm_market_range",n);render();}
+
+function rMarket(){
+  const L=EMAIL_LANG;
+  const m=MARKET_DATA;
+  const T=L==='ar'?{
+    title:"📈 السوق العالمي",
+    sub:"الذهب · الفضة · صرف العملات (الإمارات / مصر)",
+    gold:"🥇 الذهب",silver:"🥈 الفضة",fx:"💱 الصرف",
+    k24:"عيار 24",k22:"عيار 22",k18:"عيار 18",
+    gram:"جرام",oz:"أونصة",kg:"كيلو",
+    egp_aed:"1 درهم = ",aed_egp:"1 جنيه = ",egpUnit:"جنيه",aedUnit:"درهم",
+    refresh:"تحديث الأسعار",refreshing:"جاري الجلب...",
+    last:"آخر تحديث",src:"المصدر",
+    convT:"تحويلات سريعة (الجنيه ↔ الدرهم)",
+    note:"التحديث يتم عبر Claude API + بحث ويب — قد يتأخر بضع ثوانٍ.",
+    ai_off:"🔑 لتحديث الأسعار تلقائياً، أدخل مفتاح Anthropic API في تبويب \"المساعد الذكي\"."
+    ,trends:"📊 الاتجاهات التاريخية",
+    goldT:"🥇 الذهب — عيار 24",silverT:"🥈 الفضة — درهم/جرام",fxT:"💱 صرف الجنيه (1 درهم = ؟ جنيه)",
+    now:"الآن",high:"أعلى",low:"أدنى",avg:"متوسط",
+    r7:"7 أيام",r30:"30 يوم",r90:"90 يوم"
+  }:{
+    title:"📈 Global Market",
+    sub:"Gold · Silver · FX (UAE / Egypt)",
+    gold:"🥇 Gold",silver:"🥈 Silver",fx:"💱 FX",
+    k24:"24 Carat",k22:"22 Carat",k18:"18 Carat",
+    gram:"gram",oz:"ounce",kg:"kg",
+    egp_aed:"1 AED = ",aed_egp:"1 EGP = ",egpUnit:"EGP",aedUnit:"AED",
+    refresh:"Refresh Prices",refreshing:"Fetching...",
+    last:"Last update",src:"Source",
+    convT:"Quick Conversions (EGP ↔ AED)",
+    note:"Prices fetched via Claude API + web search — may take a few seconds.",
+    ai_off:"🔑 To auto-update prices, set your Anthropic API key in the AI Assistant tab.",
+    trends:"📊 Historical Trends",
+    goldT:"🥇 Gold — 24K",silverT:"🥈 Silver — AED/g",fxT:"💱 EGP per AED",
+    now:"Now",high:"High",low:"Low",avg:"Avg",
+    r7:"7d",r30:"30d",r90:"90d"
+  };
+  const fmt=(n,d=2)=>typeof n==="number"?n.toLocaleString(L==='ar'?'ar-EG':'en-US',{maximumFractionDigits:d}):"—";
+  const conv=[1,10,100,1000,10000];
+  return card(`
+    ${ctitle(T.title+" — "+T.sub)}
+    <div class="mk-wrap">
+      <div class="mk-top">
+        <div class="mk-last">📅 ${T.last}: <b style="color:#00d4ff">${esc(m.date)}</b> · ${T.src}: ${esc(m.source||"—")}</div>
+        <button class="em-refresh" id="mkRef" onclick="refreshMarket()" ${MARKET_BUSY?"disabled":""}>
+          <span class="rf-ic">🔄</span>
+          <span>${MARKET_BUSY?T.refreshing:T.refresh}</span>
+        </button>
+      </div>
+      ${!AI_KEY?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:10px 14px;font-size:11.5px;color:#fbbf24">${T.ai_off}</div>`:""}
+      <div class="mk-grid">
+        <div class="mk-card gold">
+          <div class="mk-h">${T.gold}</div>
+          <div class="mk-rows">
+            <div class="mk-row"><span>${T.k24}</span><b>${fmt(m.gold.carat_24)} AED/${T.gram}</b></div>
+            <div class="mk-row"><span>${T.k22}</span><b>${fmt(m.gold.carat_22)} AED/${T.gram}</b></div>
+            <div class="mk-row"><span>${T.k18}</span><b>${fmt(m.gold.carat_18)} AED/${T.gram}</b></div>
+          </div>
+        </div>
+        <div class="mk-card silver">
+          <div class="mk-h">${T.silver}</div>
+          <div class="mk-rows">
+            <div class="mk-row"><span>${T.gram}</span><b>${fmt(m.silver.per_gram)} AED</b></div>
+            <div class="mk-row"><span>${T.oz}</span><b>${fmt(m.silver.per_ounce)} AED</b></div>
+            <div class="mk-row"><span>${T.kg}</span><b>${fmt(m.silver.per_kg,0)} AED</b></div>
+          </div>
+        </div>
+        <div class="mk-card fx">
+          <div class="mk-h">${T.fx}</div>
+          <div class="mk-rows">
+            <div class="mk-row"><span>${T.egp_aed}</span><b>${fmt(m.fx.egp_per_aed,3)} ${T.egpUnit}</b></div>
+            <div class="mk-row"><span>${T.aed_egp}</span><b>${fmt(m.fx.aed_per_egp,4)} ${T.aedUnit}</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="mk-conv">
+        <div class="mk-conv-h">💡 ${T.convT}</div>
+        <div class="mk-conv-rows">
+          ${conv.map(v=>`<div class="mk-conv-row"><b>${fmt(v,0)} ${T.aedUnit}</b> = ${fmt(v*m.fx.egp_per_aed,0)} ${T.egpUnit}</div>`).join("")}
+        </div>
+        <div class="mk-conv-rows" style="margin-top:6px">
+          ${conv.map(v=>`<div class="mk-conv-row"><b>${fmt(v,0)} ${T.egpUnit}</b> = ${fmt(v*m.fx.aed_per_egp,2)} ${T.aedUnit}</div>`).join("")}
+        </div>
+      </div>
+      ${rMarketCharts(L,T,fmt)}
+      <div class="mk-note">${T.note}</div>
+    </div>
+  `,"cf");
+}
+
+function rMarketCharts(L,T,fmt){
+  const slice=MARKET_HISTORY.slice(-MARKET_RANGE);
+  if(slice.length<2)return"";
+  const buildCard=(cls,key,title,suffix,decimals)=>{
+    const vals=slice.map(p=>p[key]).filter(v=>typeof v==="number");
+    if(vals.length<2)return"";
+    const first=vals[0],last=vals[vals.length-1];
+    const change=((last-first)/first)*100;
+    const cls2=Math.abs(change)<0.05?"flat":(change>=0?"up":"down");
+    const arrow=Math.abs(change)<0.05?"→":(change>=0?"▲":"▼");
+    const high=Math.max(...vals),low=Math.min(...vals);
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const id="mk_chart_"+key;
+    return `<div class="mk-chart-card ${cls}">
+      <div class="mk-chart-h">
+        <div class="mk-chart-title">${title}</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="mk-chart-now">${T.now}: <b style="color:#cbd5e1">${fmt(last,decimals)} ${suffix}</b></span>
+          <span class="mk-chart-change ${cls2}">${arrow} ${(change>=0?"+":"")}${change.toFixed(2)}%</span>
+        </div>
+      </div>
+      <div class="mk-canvas-wrap"><canvas id="${id}"></canvas></div>
+      <div class="mk-stats-mini">
+        <div class="mk-mini"><div class="mk-mini-l">${T.high}</div><div class="mk-mini-v">${fmt(high,decimals)}</div></div>
+        <div class="mk-mini"><div class="mk-mini-l">${T.low}</div><div class="mk-mini-v">${fmt(low,decimals)}</div></div>
+        <div class="mk-mini"><div class="mk-mini-l">${T.avg}</div><div class="mk-mini-v">${fmt(avg,decimals)}</div></div>
+      </div>
+    </div>`;
+  };
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <div style="font-size:13px;font-weight:700;color:#e2e8f0">${T.trends}</div>
+      <div class="mk-range">
+        <button class="${MARKET_RANGE===7?'on':''}" onclick="setMarketRange(7)">${T.r7}</button>
+        <button class="${MARKET_RANGE===30?'on':''}" onclick="setMarketRange(30)">${T.r30}</button>
+        <button class="${MARKET_RANGE===90?'on':''}" onclick="setMarketRange(90)">${T.r90}</button>
+      </div>
+    </div>
+    <div class="mk-charts">
+      ${buildCard("gold","g24",T.goldT,"AED/g",2)}
+      ${buildCard("silver","sg",T.silverT,"AED/g",2)}
+      ${buildCard("fx","fx",T.fxT,T.egpUnit,3)}
+    </div>`;
+}
+
+function initMarketCharts(){
+  if(typeof Chart==="undefined"){console.warn("Chart.js not loaded");return;}
+  // destroy previous
+  Object.values(MARKET_CHART_INSTANCES).forEach(c=>{try{c.destroy();}catch(e){}});
+  MARKET_CHART_INSTANCES={};
+  const slice=MARKET_HISTORY.slice(-MARKET_RANGE);
+  if(slice.length<2)return;
+  const labels=slice.map(p=>p.date.slice(5)); // MM-DD
+  const cfgs=[
+    {id:"mk_chart_g24",key:"g24",color:"#fbbf24",fill:"rgba(251,191,36,0.15)",label:"AED/g (24K)"},
+    {id:"mk_chart_sg", key:"sg", color:"#cbd5e1",fill:"rgba(203,213,225,0.15)",label:"AED/g"},
+    {id:"mk_chart_fx", key:"fx", color:"#22c55e",fill:"rgba(34,197,94,0.15)",label:"EGP per AED"}
+  ];
+  cfgs.forEach(cfg=>{
+    const el=document.getElementById(cfg.id);
+    if(!el)return;
+    const ctx=el.getContext("2d");
+    const data=slice.map(p=>p[cfg.key]);
+    // gradient
+    const grad=ctx.createLinearGradient(0,0,0,180);
+    grad.addColorStop(0,cfg.fill);
+    grad.addColorStop(1,"rgba(0,0,0,0)");
+    MARKET_CHART_INSTANCES[cfg.id]=new Chart(ctx,{
+      type:"line",
+      data:{labels,datasets:[{
+        label:cfg.label,data,borderColor:cfg.color,backgroundColor:grad,
+        borderWidth:2,fill:true,tension:0.35,pointRadius:0,pointHoverRadius:5,
+        pointHoverBackgroundColor:cfg.color,pointHoverBorderColor:"#fff",pointHoverBorderWidth:2
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        interaction:{intersect:false,mode:"index"},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:"rgba(10,20,40,0.95)",borderColor:cfg.color,borderWidth:1,
+            padding:10,titleColor:"#00d4ff",bodyColor:"#e2e8f0",
+            callbacks:{label:c=>` ${cfg.label}: ${c.parsed.y.toLocaleString(undefined,{maximumFractionDigits:3})}`}
+          }
+        },
+        scales:{
+          x:{
+            grid:{color:"rgba(148,163,184,0.06)",drawTicks:false},
+            ticks:{color:"#64748b",font:{size:9,family:"Cairo"},maxRotation:0,autoSkipPadding:20}
+          },
+          y:{
+            grid:{color:"rgba(148,163,184,0.08)"},
+            ticks:{color:"#94a3b8",font:{size:10,family:"Courier New"},
+              callback:v=>v.toLocaleString(undefined,{maximumFractionDigits:cfg.key==="fx"?3:1})}
+          }
+        }
+      }
+    });
+  });
+}
+
+async function refreshMarket(){
+  const L=EMAIL_LANG;
+  if(!AI_KEY){alert(L==='ar'?"أدخل مفتاح Anthropic API في تبويب المساعد الذكي أولاً":"Set Anthropic API key first in the AI Assistant tab");return;}
+  if(MARKET_BUSY)return;
+  MARKET_BUSY=true;
+  const btn=document.getElementById("mkRef");
+  if(btn){btn.classList.add("spinning");btn.querySelector("span:last-child").textContent=L==='ar'?"جاري الجلب...":"Fetching...";}
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    const sys=`You are a financial data assistant. Use the web_search tool to find CURRENT (today's) prices for the UAE/Dubai market and EGP/AED exchange rate. Search for: "gold price Dubai per gram today", "silver price Dubai per gram today", "EGP to AED exchange rate today". Then return ONLY a valid JSON object (no markdown, no explanation):
+
+{
+  "date": "${today}",
+  "source": "primary source name",
+  "gold": {
+    "carat_24": <AED per gram, number>,
+    "carat_22": <AED per gram, number>,
+    "carat_18": <AED per gram, number>
+  },
+  "silver": {
+    "per_gram": <AED per gram, number>,
+    "per_ounce": <AED per ounce, number>,
+    "per_kg": <AED per kg, number>
+  },
+  "fx": {
+    "egp_per_aed": <how many EGP equal 1 AED, number>,
+    "aed_per_egp": <how many AED equal 1 EGP, number>
+  }
+}
+
+Use realistic numbers from your search results. Do not output anything else.`;
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key":AI_KEY,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body:JSON.stringify({
+        model:AI_MODEL||"claude-sonnet-4-6",
+        max_tokens:4096,
+        system:sys,
+        tools:[{type:"web_search_20250305",name:"web_search",max_uses:5}],
+        messages:[{role:"user",content:L==='ar'?"اجلب أسعار اليوم بالطريقة المحددة":"Fetch today's prices in the specified format."}]
+      })
+    });
+    const d=await res.json();
+    if(!res.ok)throw new Error(d?.error?.message||("HTTP "+res.status));
+    // Extract text from content blocks (skip web_search tool_use/result blocks)
+    const txt=(d.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("\n");
+    let clean=txt.replace(/^```(?:json)?\s*/m,"").replace(/\s*```\s*$/m,"").trim();
+    const jm=clean.match(/\{[\s\S]*\}/);
+    if(!jm)throw new Error("No JSON in response");
+    const parsed=JSON.parse(jm[0]);
+    // Validate
+    if(!parsed.gold||!parsed.silver||!parsed.fx)throw new Error("Missing fields in response");
+    MARKET_DATA=parsed;
+    save("tm_market",MARKET_DATA);
+    appendHistoryFromCurrent();
+    render();
+  }catch(e){
+    console.error(e);
+    alert((L==='ar'?"فشل التحديث: ":"Refresh failed: ")+e.message+"\n\n"+(L==='ar'?"تأكد أن النموذج المختار يدعم web_search (Sonnet 4.x أو أحدث).":"Make sure the selected model supports web_search (Sonnet 4.x or newer)."));
+  }finally{
+    MARKET_BUSY=false;
+    if(btn){btn.classList.remove("spinning");btn.querySelector("span:last-child").textContent=L==='ar'?"تحديث الأسعار":"Refresh Prices";}
+  }
+}
+
+// ══════════════════════════════════════════
+// AI ASSISTANT (Claude API)
+// ══════════════════════════════════════════
+const AI_SYSTEM=`أنت "Agent أحمد" — مساعد شخصي ذكي لأحمد سلاح، مستشار مشاريع مؤسسية في Restroworks (برنامج إدارة مطاعم سحابي) مقيم في الشارقة ذو جذور مصرية.
+
+أسلوبك: عربي، مباشر، موجز، نقاط مرقّمة — لا فقرات طويلة ولا مقدمات.
+
+أولويات أحمد (رتّب اقتراحاتك بناءً عليها):
+1. الصلوات الخمس — لا تقترح مهام تتعارض مع أوقاتها
+2. القرآن والأذكار اليومية
+3. العمل المهني — مشاريع Restroworks (Eathos، Sushi Art، Bubble Tea By Rosa's)
+4. الصحة والرياضة
+5. التخطيط المالي والاستعداد للانتقال لمصر
+6. التطوير الشخصي
+
+قواعد:
+- عاجل+مهم أولاً
+- لتحليل WhatsApp/إيميل: استخرج جدولاً | المشكلة | المسؤول | الأولوية | الحالة |
+- القرارات المالية: إيجابيات/سلبيات، واختم بـ "القرار لك"
+- ردودك قصيرة: أرقام وأسطر، لا حشو`;
+
+function aiCtx(){
+  const done=TASKS.filter(t=>t.done).length;
+  const pending=TASKS.filter(t=>!t.done);
+  const tasksStr=pending.map(t=>`- ${t.text} [${t.priority}]`).join("\n")||"(لا مهام معلقة)";
+  const projStr=PROJ.map(p=>`- ${p.name}: ${p.progress}%`).join("\n");
+  const prayers=Object.entries(PRAYERS).map(([n,t])=>`${n} ${t}`).join(" | ");
+  return `السياق الحالي (لحظة السؤال):
+📅 التاريخ: ${new Date().toLocaleDateString("ar-AE",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}
+🕌 الصلاة القادمة: ${nextPrayer().name} ${nextPrayer().time} (${nextPrayer().rem})
+🕌 مواقيت اليوم: ${prayers}
+
+📋 المشاريع:
+${projStr}
+
+✅ المهام المعلقة (${pending.length}/${TASKS.length} أُنجزت ${done}):
+${tasksStr}`;
+}
+
+function rAI(){
+  const keyOk=!!AI_KEY;
+  const msgs=AI_MSGS.length?AI_MSGS.map(m=>`<div class="ai-msg ${m.role==='user'?'user':'bot'}">${esc(m.content)}</div>`).join(""):
+    `<div class="ai-msg sys">👋 مرحباً أحمد! اسألني عن مهامك أو اطلب تحليلاً للتقدم أو اقتراح مهام لليوم.</div>`;
+  const busyEl=AI_BUSY?`<div class="ai-msg bot"><div class="ai-typing"><span></span><span></span><span></span></div></div>`:"";
+  return card(`
+    ${ctitle("🤖 المساعد الذكي — Claude")}
+    <div class="ai-wrap">
+      <div class="ai-key-row">
+        <input id="aiKey" class="inp" type="password" placeholder="ألصق مفتاح Anthropic API (sk-ant-...)" value="${esc(AI_KEY)}"/>
+        <select id="aiModel" style="background:rgba(10,20,40,.85);border:1px solid rgba(0,212,255,.2);border-radius:9px;padding:9px 12px;color:#e2e8f0;font-family:'Cairo',sans-serif;font-size:13px;outline:none;cursor:pointer">
+          <option value="claude-sonnet-4-6"${AI_MODEL==='claude-sonnet-4-6'?' selected':''}>Sonnet 4.6 (متوازن)</option>
+          <option value="claude-haiku-4-5-20251001"${AI_MODEL==='claude-haiku-4-5-20251001'?' selected':''}>Haiku 4.5 (سريع/رخيص)</option>
+          <option value="claude-opus-4-6"${AI_MODEL==='claude-opus-4-6'?' selected':''}>Opus 4.6 (الأقوى)</option>
+        </select>
+        <button class="btn" onclick="saveAiKey()">حفظ</button>
+        <span class="ai-status ${keyOk?'ok':'no'}">${keyOk?'● متصل':'○ أدخل المفتاح'}</span>
+      </div>
+      <div class="ai-quick">
+        <button class="ai-qb" onclick="aiQuick('تحليل')"${AI_BUSY?' disabled':''}>📊 حلّل تقدمي</button>
+        <button class="ai-qb" onclick="aiQuick('مهام')"${AI_BUSY?' disabled':''}>🎯 اقترح مهام لليوم</button>
+        <button class="ai-qb" onclick="aiQuick('ملخص')"${AI_BUSY?' disabled':''}>📝 ملخص يومي</button>
+        <button class="ai-qb" onclick="aiQuick('أولويات')"${AI_BUSY?' disabled':''}>🔥 رتّب أولوياتي</button>
+        <button class="ai-qb" onclick="aiClear()" style="border-color:rgba(239,68,68,.3);color:#ef4444;background:rgba(239,68,68,.05)">🗑 مسح المحادثة</button>
+      </div>
+      <div id="aiChat" class="ai-chat">${msgs}${busyEl}</div>
+      <div class="ai-input-row">
+        <textarea id="aiInp" placeholder="اكتب رسالتك... (Enter للإرسال، Shift+Enter لسطر جديد)"${AI_BUSY?' disabled':''}></textarea>
+        <button class="btn" onclick="aiSend()"${AI_BUSY?' disabled':''}>${AI_BUSY?'...':'إرسال'}</button>
+      </div>
+      <div style="font-size:10px;color:#64748b;text-align:center">🔒 مفتاح الـ API محفوظ محلياً فقط في متصفحك (localStorage). لا يُرسل لأي خادم إلا Anthropic مباشرة.</div>
+    </div>
+  `,"cf");
+}
+function saveAiKey(){
+  const k=document.getElementById("aiKey").value.trim();
+  const m=document.getElementById("aiModel").value;
+  AI_KEY=k;AI_MODEL=m;
+  save("tm_ai_key",AI_KEY);save("tm_ai_model",AI_MODEL);
+  render();
+}
+function aiClear(){
+  if(!confirm("مسح كل المحادثة؟"))return;
+  AI_MSGS=[];save("tm_ai_msgs",AI_MSGS);render();
+}
+function aiQuick(type){
+  const prompts={
+    "تحليل":"حلّل تقدمي في المشاريع والمهام الحالية. ما الذي يسير بشكل جيد؟ وأين أحتاج تركيزاً أكبر؟ أعطني 3-5 نقاط.",
+    "مهام":"بناءً على مشاريعي ومهامي المعلقة، اقترح 3 مهام عملية يمكنني إنجازها اليوم مع مراعاة مواقيت الصلاة. رتّبها بالأولوية.",
+    "ملخص":"أعطني ملخصاً سريعاً لوضعي اليوم: المهام، المشاريع، الصلاة القادمة، وأهم نصيحة لليوم. مختصر جداً.",
+    "أولويات":"راجع مهامي المعلقة ورتّبها من الأهم للأقل أهمية حسب أولوياتي الشخصية (العمل، الصلاة، الصحة). اقترح أي مهام يجب حذفها أو تأجيلها."
+  };
+  const t=document.getElementById("aiInp");
+  if(t){t.value=prompts[type];aiSend();}
+}
+function aiScrollBottom(){
+  const c=document.getElementById("aiChat");
+  if(c)c.scrollTop=c.scrollHeight;
+}
+async function aiSend(){
+  if(AI_BUSY)return;
+  if(!AI_KEY){alert("أدخل مفتاح Anthropic API أولاً");return;}
+  const inp=document.getElementById("aiInp");
+  const txt=inp?.value.trim();
+  if(!txt)return;
+  inp.value="";
+  AI_MSGS.push({role:"user",content:txt});
+  save("tm_ai_msgs",AI_MSGS);
+  AI_BUSY=true;render();
+  try{
+    const userWithCtx=AI_MSGS.length===1?`${aiCtx()}\n\n---\n${txt}`:txt;
+    const apiMsgs=AI_MSGS.map((m,i)=>({
+      role:m.role,
+      content: i===0 ? `${aiCtx()}\n\n---\n${m.content}` : m.content
+    }));
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key":AI_KEY,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body:JSON.stringify({
+        model:AI_MODEL,
+        max_tokens:1024,
+        system:AI_SYSTEM,
+        messages:apiMsgs
+      })
+    });
+    const data=await res.json();
+    if(!res.ok){
+      const errMsg=data?.error?.message||`HTTP ${res.status}`;
+      AI_MSGS.push({role:"assistant",content:`❌ خطأ: ${errMsg}`});
+    }else{
+      const reply=data.content?.[0]?.text||"(رد فارغ)";
+      AI_MSGS.push({role:"assistant",content:reply});
+    }
+  }catch(e){
+    AI_MSGS.push({role:"assistant",content:`❌ فشل الاتصال: ${e.message}`});
+  }
+  save("tm_ai_msgs",AI_MSGS);
+  AI_BUSY=false;render();
+  setTimeout(aiScrollBottom,50);
+}
+
+// ══════════════════════════════════════════
+// TRACKER (embedded habit-tracker-bilingual)
+// ══════════════════════════════════════════
+function rTracker(){
+  return `<iframe class="tracker-frame" src="habit-tracker-bilingual.html" title="Habit Tracker"></iframe>`;
+}
+
+// ══════════════════════════════════════════
+// BIND EVENTS
+// ══════════════════════════════════════════
+function bind(){
+  document.querySelectorAll(".ti[data-tid]").forEach(el=>{
+    el.addEventListener("click",()=>toggleTask(+el.dataset.tid));
+  });
+  document.getElementById("tinp")?.addEventListener("keydown",e=>{if(e.key==="Enter")addTask();});
+  document.getElementById("pname")?.addEventListener("keydown",e=>{if(e.key==="Enter")addProj();});
+  document.getElementById("aiInp")?.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();aiSend();}
+  });
+  if(tab==="ai")setTimeout(aiScrollBottom,20);
+
+  // PROJECT CARDS — edit progress & delete
+  document.querySelectorAll(".proj-card").forEach(card=>{
+    const id=Number(card.dataset.pid);
+    const color=card.dataset.color||"#00d4ff";
+    const sld=card.querySelector(".pSlider");
+    const num=card.querySelector(".pNum");
+    const minus=card.querySelector(".pMinus");
+    const plus=card.querySelector(".pPlus");
+    const del=card.querySelector(".pDel");
+
+    // Live preview while dragging (no save)
+    sld?.addEventListener("input",e=>{
+      const v=clampPct(+e.target.value);
+      const big=card.querySelector(".pBig"),bar=card.querySelector(".pBar");
+      if(big)big.textContent=v+"%";
+      if(bar)bar.style.width=v+"%";
+      if(num)num.value=v;
+    });
+    // Save on release
+    sld?.addEventListener("change",e=>setProjProgress(id,+e.target.value));
+
+    // Number input — save on blur or Enter
+    num?.addEventListener("change",e=>setProjProgress(id,+e.target.value));
+    num?.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){e.preventDefault();setProjProgress(id,+e.target.value);e.target.blur();}
+    });
+
+    // +/- buttons
+    minus?.addEventListener("click",()=>bumpProjCard(card,-5));
+    plus?.addEventListener("click",()=>bumpProjCard(card,+5));
+
+    // Delete with confirmation
+    del?.addEventListener("click",()=>{
+      const p=PROJ.find(x=>x.id===id);
+      if(!p)return;
+      if(confirm(`حذف المشروع "${p.name}"؟\nلا يمكن التراجع.`))delProj(id);
+    });
+  });
+}
+
+// ══════════════════════════════════════════
+// START
+// ══════════════════════════════════════════
+render();
+
+// ══════════════════════════════════════════
+// PWA — SERVICE WORKER REGISTRATION
+// ══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('[THE MONSTER] Service Worker مُفعَّل ✅', reg.scope);
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[THE MONSTER] تحديث متاح');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[THE MONSTER] Service Worker فشل:', err));
+  });
+}
+
+// ══ PWA Install Prompt ══
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.createElement('button');
+  btn.innerHTML = '📲 تثبيت التطبيق';
+  btn.style.cssText = `
+    position:fixed;bottom:calc(16px + var(--safe-bottom));left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#00d4ff,#0066cc);color:#fff;
+    font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;
+    border:none;border-radius:25px;padding:10px 24px;cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,212,255,.4);z-index:9999;
+    animation:fadeIn .4s ease;letter-spacing:1px;
+  `;
+  btn.addEventListener('click', async () => {
+    if(!deferredInstallPrompt)return;
+    deferredInstallPrompt.prompt();
+    const {outcome} = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    btn.remove();
+  });
+  document.body.appendChild(btn);
+  setTimeout(()=>btn?.remove(), 8000);
+});
+window.addEventListener('appinstalled', ()=>{ deferredInstallPrompt=null; });
+</script>
+</body>
+</html>
