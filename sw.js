@@ -3,11 +3,12 @@
 // يتيح العمل بدون إنترنت ويخزن الملفات محلياً
 // ══════════════════════════════════════════
 
-const CACHE_NAME = 'the-monster-v1';
+const CACHE_NAME = 'the-monster-v2';
 const CACHE_URLS = [
   './',
   './index.html',
   './manifest.json',
+  './habit-tracker-bilingual.html',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',

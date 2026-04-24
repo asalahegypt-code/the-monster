@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker | متتبع العادات — Ahmed</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:      #EDE7DA;
+    --card:    #E2D9C8;
+    --dark:    #2A1E10;
+    --mid:     #7A6040;
+    --light:   #C8B89A;
+    --accent:  #B8894C;
+    --accent2: #D4AA70;
+    --border:  #C8B89A;
+    --white:   #FAF6EF;
+    --green:   #3A6B3A;
+    --red:     #9B4040;
+    --shadow:  rgba(42,30,16,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+
+  body {
+    background: var(--bg);
+    color: var(--dark);
+  }
+  body.lang-en { font-family: 'Crimson Text', Georgia, serif; direction: ltr; }
+  body.lang-ar { font-family: 'Tajawal', 'Amiri', sans-serif; direction: rtl; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: .4;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--dark);
+    padding: 10px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px var(--shadow);
+    position: sticky; top: 0; z-index: 100;
+    gap: 10px; flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .header-title {
+    font-size: 18px; font-weight: 900; color: var(--accent2);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  body.lang-ar .header-title {
+    font-family: 'Amiri', serif; letter-spacing: 0; font-size: 20px;
+  }
+  body.lang-en .header-title { font-family: 'Playfair Display', serif; }
+  .header-sub { font-size: 12px; color: var(--light); letter-spacing: 2px; font-style: italic; }
+  body.lang-ar .header-sub { font-style: normal; letter-spacing: 0; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .header-date {
+    font-size: 12px; color: var(--light); letter-spacing: 2px;
+    border: 1px solid #4A3820; padding: 4px 12px; border-radius: 20px;
+  }
+  .today-badge {
+    background: var(--accent); color: white;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* ── SAVE BUTTON ── */
+  .save-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent); color: white;
+    border: 1px solid var(--accent2);
+    padding: 5px 14px; border-radius: 24px;
+    cursor: pointer; font-family: inherit;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    transition: all .2s ease;
+    user-select: none;
+  }
+  body.lang-ar .save-btn { letter-spacing: 0; font-size: 12px; }
+  .save-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(184,137,76,.4); }
+  .save-btn:active { transform: translateY(0); }
+  .save-btn.saved { background: var(--green); border-color: var(--green); }
+  .save-btn.saving { opacity: .7; cursor: wait; }
+  .save-btn.dirty { background: #B8894C; animation: pulseSave 1.4s infinite; }
+  @keyframes pulseSave { 0%,100%{box-shadow:0 0 0 0 rgba(184,137,76,.5)} 50%{box-shadow:0 0 0 6px rgba(184,137,76,0)} }
+  .save-btn .save-icon { font-size: 12px; line-height: 1; }
+  .save-meta {
+    font-size: 9.5px; color: var(--light); letter-spacing: 1px;
+    padding: 4px 10px; border-radius: 14px;
+    background: rgba(0,0,0,.18); border: 1px solid #4A3820;
+  }
+  body.lang-ar .save-meta { letter-spacing: 0; font-size: 11px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--dark); color: var(--accent2);
+    padding: 10px 22px; border-radius: 24px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+    z-index: 9999; opacity: 0;
+    transition: all .35s cubic-bezier(.2,.7,.3,1.5);
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; gap: 8px;
+    pointer-events: none;
+  }
+  body.lang-ar .toast { letter-spacing: 0; font-size: 13px; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-icon { font-size: 16px; }
+
+  /* ── LANG SWITCHER ── */
+  .lang-btn {
+    display: flex; align-items: center; gap: 0;
+    background: #3A2A16; border: 1px solid #5A4030; border-radius: 24px;
+    overflow: hidden; cursor: pointer;
+  }
+  .lang-opt {
+    padding: 5px 14px; font-size: 11px; font-weight: 700;
+    color: var(--light); transition: all .2s; letter-spacing: 1px;
+    cursor: pointer; user-select: none;
+  }
+  .lang-opt.active { background: var(--accent); color: white; border-radius: 24px; }
+
+  /* ── MAIN ── */
+  .main { padding: 12px 18px; max-width: 1600px; margin: 0 auto; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: 10px; padding: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px var(--shadow);
+    animation: fadeUp .4s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.10s}
+  .card:nth-child(3){animation-delay:.15s}.card:nth-child(4){animation-delay:.20s}
+
+  /* ── SEC TITLE ── */
+  .sec-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--mid);
+    text-align: center; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  body.lang-ar .sec-title { letter-spacing: 0; font-size: 12px; text-transform: none; }
+  .sec-title::before,.sec-title::after {
+    content:''; flex:1; height:1px; background:var(--border); max-width:40px;
+  }
+
+  /* ── TOP ROW ── */
+  .top-row {
+    display: grid; grid-template-columns: 1fr 1fr 180px;
+    gap: 10px; margin-bottom: 10px;
+  }
+  .chart-wrap { height: 86px; }
+
+  /* ── DONUT ── */
+  .donut-wrap { position:relative; width:92px; height:92px; margin:0 auto 10px; }
+  .donut-wrap canvas { width:92px!important; height:92px!important; }
+  .donut-center {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:16px; font-weight:700; color:var(--dark);
+  }
+  body.lang-en .donut-center { font-family:'Playfair Display',serif; }
+  .stats-row { display:flex; justify-content:space-around; }
+  .stat-item { text-align:center; }
+  .stat-num { font-size:15px; font-weight:700; }
+  body.lang-en .stat-num { font-family:'Playfair Display',serif; }
+  .stat-lbl { font-size:9px; color:var(--mid); letter-spacing:1.5px; text-transform:uppercase; margin-top:1px; }
+  body.lang-ar .stat-lbl { letter-spacing:0; font-size:10px; text-transform:none; }
+
+  /* ── GRID ROW ── */
+  .grid-row { display:grid; grid-template-columns:1fr 200px; gap:10px; margin-bottom:10px; }
+
+  /* ── HABIT TABLE ── */
+  .habit-card { overflow-x:auto; }
+  .habit-table { border-collapse:collapse; table-layout:fixed; min-width:640px; width:100%; }
+
+  .week-header th {
+    font-size:8px; font-weight:700; text-align:center;
+    color:var(--mid); padding:3px 2px; letter-spacing:1px;
+    text-transform:uppercase; border-left:1px solid var(--border);
+  }
+  body.lang-ar .week-header th { letter-spacing:0; text-transform:none; font-size:9px; }
+  .week-header th.habit-name-th {
+    text-align:left; border-left:none;
+    font-size:11px; color:var(--dark); letter-spacing:2px;
+  }
+  body.lang-ar .week-header th.habit-name-th { text-align:right; letter-spacing:0; }
+
+  .day-header th { text-align:center; padding:2px 0; border-left:1px solid transparent; }
+  .day-header th.week-sep { border-left-color:var(--border); }
+  .day-header th.today-col { background:rgba(184,137,76,.08); border-radius:4px; }
+
+  .dow { font-size:7px; color:var(--mid); line-height:1.3; }
+  .dnum { font-size:8px; line-height:1.4; color:var(--mid); }
+  .dnum.today { color:var(--accent); font-weight:700; }
+  .dnum.future { color:var(--border); }
+
+  .habit-row td { padding:2px 1px; }
+  .habit-row td.habit-name-td {
+    padding:3px 8px 3px 4px; font-size:10.5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  body.lang-ar .habit-row td.habit-name-td { padding:3px 4px 3px 8px; font-size:12px; }
+  .habit-row.alt { background:rgba(0,0,0,.02); }
+  .habit-row td.week-sep { border-left:1px solid var(--border); }
+  .habit-row td.today-col { background:rgba(184,137,76,.04); }
+
+  .cb {
+    width:13px; height:13px; margin:0 auto;
+    border:1.5px solid var(--mid); border-radius:2px;
+    background:var(--white); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .12s ease; user-select:none;
+  }
+  .cb:hover { border-color:var(--accent); transform:scale(1.15); }
+  .cb.checked { background:var(--dark); border-color:var(--dark); }
+  .cb.future-day { background:var(--white); border-color:var(--border); opacity:.65; }
+  .cb.future-day:hover { opacity:1; border-color:var(--accent); }
+  .cb-check { color:white; font-size:8px; font-weight:700; line-height:1; display:none; }
+  .cb.checked .cb-check { display:block; }
+
+  /* ── ANALYSIS ── */
+  .analysis-table { width:100%; border-collapse:collapse; font-size:9.5px; }
+  .analysis-table thead th {
+    text-align:center; padding:3px 2px; color:var(--mid);
+    font-weight:600; font-size:9px; letter-spacing:.8px;
+    border-bottom:1.5px solid var(--mid);
+  }
+  body.lang-ar .analysis-table thead th { letter-spacing:0; font-size:10px; }
+  .analysis-table thead th.prog { text-align:left; }
+  body.lang-ar .analysis-table thead th.prog { text-align:right; }
+  .analysis-table tbody tr { border-bottom:1px solid var(--border); }
+  .analysis-table tbody tr:hover { background:rgba(184,137,76,.05); }
+  .analysis-table tbody td { padding:3px 2px; text-align:center; }
+  .analysis-table tbody td.prog { padding:3px 4px; }
+  .pct-bar-bg { background:var(--border); border-radius:3px; height:6px; overflow:hidden; }
+  .pct-bar { height:100%; border-radius:3px; transition:width .4s ease; }
+
+  /* ── SMART ROW (Prayer/Quran/Streaks) ── */
+  .smart-row{
+    display:grid; grid-template-columns:1.2fr 1fr 1fr;
+    gap:10px; margin:10px 0;
+  }
+  @media (max-width:980px){ .smart-row{ grid-template-columns:1fr; } }
+
+  /* Prayer card */
+  .prayer-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 8px; margin-bottom:8px;
+    background:linear-gradient(135deg,#2A1E10,#3A2A16);
+    border-radius:8px; color:var(--accent2);
+  }
+  .prayer-loc{ font-size:10px; letter-spacing:1px; opacity:.85; }
+  body.lang-ar .prayer-loc{ letter-spacing:0; font-size:11px; }
+  .prayer-next{ font-size:10px; font-weight:700; color:var(--accent2); }
+  .prayer-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:4px; }
+  .prayer-cell{
+    background:var(--white); border:1px solid var(--border); border-radius:6px;
+    padding:6px 3px; text-align:center; cursor:pointer;
+    transition:all .15s ease; position:relative;
+  }
+  .prayer-cell:hover{ transform:translateY(-2px); border-color:var(--accent); }
+  .prayer-cell.next{
+    background:linear-gradient(180deg,rgba(184,137,76,.18),rgba(184,137,76,.05));
+    border-color:var(--accent); box-shadow:0 0 0 2px rgba(184,137,76,.15);
+  }
+  .prayer-cell.done{ background:#2A1E10; border-color:#2A1E10; }
+  .prayer-cell.done .pn,.prayer-cell.done .pt{ color:var(--accent2); }
+  .prayer-cell.done::after{
+    content:'✓'; position:absolute; top:2px; right:3px;
+    font-size:9px; color:var(--accent2); font-weight:700;
+  }
+  .pn{ font-size:9px; font-weight:700; color:var(--mid); letter-spacing:.5px; }
+  body.lang-ar .pn{ font-size:11px; letter-spacing:0; }
+  .pt{ font-size:11px; font-weight:700; color:var(--dark); margin-top:2px; }
+  body.lang-en .pt{ font-family:'Playfair Display',serif; }
+
+  /* Quran card */
+  .quran-bar-bg{
+    background:var(--border); border-radius:6px; height:14px;
+    position:relative; overflow:hidden; margin:8px 0 4px;
+  }
+  .quran-bar{
+    height:100%; background:linear-gradient(90deg,#7A6040,#B8894C,#D4AA70);
+    border-radius:6px; transition:width .5s ease;
+  }
+  .quran-bar-txt{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; color:var(--white);
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  .quran-row{
+    display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;
+  }
+  .quran-mini{
+    background:var(--white); border:1px solid var(--border); border-radius:6px;
+    padding:6px; text-align:center;
+  }
+  .quran-mini .lbl{ font-size:8.5px; color:var(--mid); letter-spacing:.5px; text-transform:uppercase; }
+  body.lang-ar .quran-mini .lbl{ font-size:10px; letter-spacing:0; text-transform:none; }
+  .quran-mini .val{ font-size:14px; font-weight:700; color:var(--dark); margin-top:2px; }
+  body.lang-en .quran-mini .val{ font-family:'Playfair Display',serif; }
+  .quran-input{
+    display:flex; gap:4px; margin-top:8px;
+  }
+  .quran-input input{
+    flex:1; padding:5px 8px; border:1px solid var(--border); border-radius:5px;
+    background:var(--white); color:var(--dark); font-size:11px;
+    font-family:inherit; outline:none;
+  }
+  .quran-input input:focus{ border-color:var(--accent); }
+  .quran-input button{
+    padding:5px 12px; background:var(--dark); color:var(--accent2);
+    border:none; border-radius:5px; cursor:pointer;
+    font-size:10px; font-weight:700; letter-spacing:1px;
+    font-family:inherit; transition:all .15s;
+  }
+  .quran-input button:hover{ background:var(--accent); color:white; }
+  .quran-curr{
+    text-align:center; padding:5px; margin-top:6px;
+    font-size:10px; color:var(--mid);
+    border-top:1px dashed var(--border);
+  }
+  body.lang-ar .quran-curr{ font-size:11px; }
+  .quran-curr b{ color:var(--accent); }
+
+  /* Streaks card */
+  .streak-row{
+    display:flex; align-items:center; gap:6px;
+    padding:5px 6px; margin-bottom:3px;
+    background:var(--white); border:1px solid var(--border); border-radius:5px;
+    font-size:10px;
+  }
+  body.lang-ar .streak-row{ font-size:11px; }
+  .streak-row.alert{ background:rgba(155,64,64,.08); border-color:rgba(155,64,64,.3); }
+  .streak-row.fire{ background:linear-gradient(90deg,rgba(184,137,76,.12),transparent); }
+  .streak-name{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .streak-num{
+    font-weight:700; padding:2px 7px; border-radius:10px;
+    font-size:10px; min-width:30px; text-align:center;
+  }
+  body.lang-en .streak-num{ font-family:'Playfair Display',serif; }
+  .streak-num.hot{ background:#B8894C; color:white; }
+  .streak-num.warm{ background:var(--mid); color:white; }
+  .streak-num.cold{ background:var(--border); color:var(--dark); }
+  .streak-num.danger{ background:#9B4040; color:white; }
+  .streak-tabs{
+    display:flex; gap:4px; margin-bottom:8px;
+    background:var(--bg); padding:3px; border-radius:6px;
+  }
+  .streak-tab{
+    flex:1; padding:4px 6px; text-align:center; cursor:pointer;
+    font-size:9.5px; font-weight:600; letter-spacing:.5px;
+    border-radius:4px; color:var(--mid); transition:all .15s;
+  }
+  body.lang-ar .streak-tab{ font-size:11px; letter-spacing:0; }
+  .streak-tab.active{ background:var(--dark); color:var(--accent2); }
+
+  /* ── BOTTOM ROW ── */
+  .bottom-row { display:grid; grid-template-columns:1fr 200px; gap:10px; }
+  .mental-wrap { overflow-x:auto; }
+  .mental-table { border-collapse:collapse; min-width:360px; }
+  .mental-table th { font-size:8px; color:var(--mid); font-weight:600; padding:2px 3px; text-align:center; }
+  .mental-table th:first-child { text-align:left; min-width:115px; }
+  body.lang-ar .mental-table th:first-child { text-align:right; }
+  .mental-val { text-align:center; font-size:9px; font-weight:700; padding:3px 2px; border-radius:2px; }
+  .mental-label { font-size:10px; padding:3px 2px; font-weight:600; white-space:nowrap; }
+  body.lang-ar .mental-label { font-size:12px; }
+
+  /* ── TOP HABITS ── */
+  .top-habit { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:10px; }
+  body.lang-ar .top-habit { font-size:12px; }
+  .rank-badge {
+    width:18px; height:18px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; color:white; flex-shrink:0;
+  }
+  .top-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .top-pct { font-weight:700; flex-shrink:0; }
+  body.lang-en .top-pct { font-family:'Playfair Display',serif; }
+
+  /* ── FOOTER ── */
+  .footer { text-align:center; padding:14px; font-size:10px; color:var(--border); letter-spacing:1.5px; }
+  body.lang-ar .footer { letter-spacing:0; font-size:12px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--mid); }
+</style>
+</head>
+<body class="lang-en" id="body">
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-left">
+    <span class="header-title" id="hTitle">Habit Tracker</span>
+    <span class="header-sub" id="hSub">Ahmed · Daily Discipline</span>
+  </div>
+  <div class="header-right">
+    <!-- SAVE BUTTON -->
+    <button class="save-btn saved" id="saveBtn" onclick="manualSave()" title="حفظ يدوي">
+      <span class="save-icon" id="saveIcon">✓</span>
+      <span id="saveLbl">SAVED</span>
+    </button>
+    <span class="save-meta" id="saveMeta">—</span>
+    <span class="header-date" id="hDate">April 2026</span>
+    <span class="today-badge" id="hToday">Day 14</span>
+    <!-- LANG SWITCHER -->
+    <div class="lang-btn">
+      <span class="lang-opt active" id="btnEn" onclick="setLang('en')">EN</span>
+      <span class="lang-opt"        id="btnAr" onclick="setLang('ar')">عربي</span>
+    </div>
+  </div>
+</header>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✓</span><span id="toastMsg">Saved</span></div>
+
+<div class="main">
+
+  <!-- TOP ROW -->
+  <div class="top-row">
+    <div class="card">
+      <div class="sec-title" id="tDaily">Daily Progress</div>
+      <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="sec-title" id="tWeekly">Weekly Progress</div>
+      <div class="chart-wrap"><canvas id="weeklyChart"></canvas></div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="sec-title" id="tOverall">Overall Stats</div>
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-center" id="donutPct">–%</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-item"><div class="stat-num" id="statGoal">–</div><div class="stat-lbl" id="lGoal">Goal</div></div>
+        <div class="stat-item"><div class="stat-num" id="statDone">–</div><div class="stat-lbl" id="lDone">Done</div></div>
+        <div class="stat-item"><div class="stat-num" id="statLeft">–</div><div class="stat-lbl" id="lLeft">Left</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRID ROW -->
+  <div class="grid-row">
+    <div class="card habit-card">
+      <div class="sec-title" id="tHabits">My Habits — April 2026</div>
+      <div style="overflow-x:auto">
+        <table class="habit-table" id="habitTable">
+          <colgroup id="colGroup"></colgroup>
+          <thead id="habitHead"></thead>
+          <tbody id="habitBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title" id="tAnalysis">Analysis</div>
+      <table class="analysis-table">
+        <thead>
+          <tr>
+            <th id="thGoal">Goal</th>
+            <th id="thDone">Done</th>
+            <th id="thLeft">Left</th>
+            <th class="prog" id="thProg">Progress</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="analysisBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SMART ROW: Prayer / Quran / Streaks -->
+  <div class="smart-row">
+    <!-- Prayer Times -->
+    <div class="card">
+      <div class="sec-title" id="tPrayer">Prayer Times</div>
+      <div class="prayer-head">
+        <span class="prayer-loc" id="prayerLoc">Sharjah, UAE</span>
+        <span class="prayer-next" id="prayerNext">—</span>
+      </div>
+      <div class="prayer-grid" id="prayerGrid"></div>
+    </div>
+
+    <!-- Quran Progress -->
+    <div class="card">
+      <div class="sec-title" id="tQuran">Quran Progress</div>
+      <div class="quran-bar-bg">
+        <div class="quran-bar" id="quranBar" style="width:0%"></div>
+        <div class="quran-bar-txt" id="quranBarTxt">0 / 604</div>
+      </div>
+      <div class="quran-row">
+        <div class="quran-mini">
+          <div class="lbl" id="qLblToday">Today</div>
+          <div class="val" id="qToday">0</div>
+        </div>
+        <div class="quran-mini">
+          <div class="lbl" id="qLblAvg">Avg/Day</div>
+          <div class="val" id="qAvg">0</div>
+        </div>
+      </div>
+      <div class="quran-input">
+        <input type="number" id="qInput" min="1" max="50" placeholder="+ pages">
+        <button id="qBtn" onclick="addQuranPages()">ADD</button>
+      </div>
+      <div class="quran-curr" id="qCurr">Juz <b>1</b> · Page <b>1</b> · <b>الفاتحة</b></div>
+    </div>
+
+    <!-- Streaks -->
+    <div class="card">
+      <div class="sec-title" id="tStreaks">Streaks 🔥</div>
+      <div class="streak-tabs">
+        <div class="streak-tab active" id="stTab1" onclick="setStreakTab('current')">Current</div>
+        <div class="streak-tab" id="stTab2" onclick="setStreakTab('best')">Best</div>
+        <div class="streak-tab" id="stTab3" onclick="setStreakTab('alert')">Alerts</div>
+      </div>
+      <div id="streakList"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+    <div class="card mental-wrap">
+      <div class="sec-title" id="tMental">Mental Stats</div>
+      <table class="mental-table" id="mentalTable"></table>
+    </div>
+    <div class="card">
+      <div class="sec-title" id="tTop">Top Habits 🏆</div>
+      <div id="topHabits"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer" id="footer">
+  Click any checkbox to mark complete · Data auto-saved in your browser
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════════
+const T = {
+  en: {
+    htmlLang: 'en', dir: 'ltr',
+    headerTitle: 'Habit Tracker',
+    headerSub:   'Ahmed · Daily Discipline',
+    headerDate:  'April 2026',
+    headerToday: (d) => `Day ${d}`,
+    tDaily:   'Daily Progress',
+    tWeekly:  'Weekly Progress',
+    tOverall: 'Overall Stats',
+    tHabits:  'My Habits — April 2026',
+    tAnalysis:'Analysis',
+    tMental:  'Mental Stats',
+    tTop:     'Top Habits 🏆',
+    tPrayer:  'Prayer Times — Sharjah',
+    tQuran:   'Quran Progress',
+    tStreaks: 'Streaks 🔥',
+    lGoal: 'Goal', lDone: 'Done', lLeft: 'Left',
+    thGoal: 'Goal', thDone: 'Done', thLeft: 'Left', thProg: 'Progress',
+    moodLabel:  '😊 Mood',
+    motivLabel: '🔥 Motivation',
+    prayerLoc: 'Sharjah, UAE',
+    prayerNames: { Fajr:'FAJR', Sunrise:'SUNRISE', Dhuhr:'DHUHR', Asr:'ASR', Maghrib:'MAGHRIB', Isha:'ISHA' },
+    nextIn: (mins)=> mins>=60 ? `Next in ${Math.floor(mins/60)}h ${mins%60}m` : `Next in ${mins}m`,
+    qLblToday:'Today', qLblAvg:'Avg/Day', qBtn:'ADD',
+    qPlaceholder:'+ pages',
+    qCurr:(j,p,s)=>`Juz <b>${j}</b> · Page <b>${p}</b> · <b>${s}</b>`,
+    stCurrent:'Current', stBest:'Best', stAlert:'Alerts',
+    daysWord:(n)=> n===1?'1 day':`${n} days`,
+    noAlerts:'All habits looking good ✨',
+    saveLblSaved:'SAVED', saveLblSaving:'SAVING…', saveLblDirty:'SAVE NOW', saveLblSave:'SAVE',
+    toastSaved:'Saved successfully',
+    toastAuto:'Auto-saved',
+    toastNothing:'Nothing to save',
+    saveMeta:(t)=>`Last save: ${t}`,
+    saveMetaNever:'Not yet saved',
+    footer: 'Click any checkbox to mark complete · Data auto-saved in your browser',
+    weeks: ['Week 1','Week 2','Week 3','Week 4','Week 5'],
+    wLabels: ['W1','W2','W3','W4','W5'],
+    habits: [
+      { id:0,  name:"Wake up 5:00 AM",   emoji:"🌅" },
+      { id:1,  name:"Fajr Prayer",        emoji:"🕌" },
+      { id:12, name:"Dhuhr Prayer",       emoji:"☀️" },
+      { id:13, name:"Asr Prayer",         emoji:"🌤️" },
+      { id:14, name:"Maghrib Prayer",     emoji:"🌇" },
+      { id:10, name:"Isha Prayer",        emoji:"🌙" },
+      { id:2,  name:"Quran Reading",      emoji:"📖" },
+      { id:3,  name:"GYM / Exercise",     emoji:"💪" },
+      { id:4,  name:"Cold Shower",        emoji:"🚿" },
+      { id:5,  name:"Work",               emoji:"💼" },
+      { id:6,  name:"Read 10 Pages",      emoji:"📚" },
+      { id:7,  name:"No Sugar",           emoji:"🍬" },
+      { id:8,  name:"No Social Media",    emoji:"📵" },
+      { id:9,  name:"Planning",           emoji:"📋" },
+      { id:11, name:"Sleep before 11 PM", emoji:"😴" },
+    ],
+  },
+  ar: {
+    htmlLang: 'ar', dir: 'rtl',
+    headerTitle: 'متتبع العادات',
+    headerSub:   'أحمد · الانضباط اليومي',
+    headerDate:  'أبريل 2026',
+    headerToday: (d) => `اليوم ${d}`,
+    tDaily:   'التقدم اليومي',
+    tWeekly:  'التقدم الأسبوعي',
+    tOverall: 'الإحصائيات العامة',
+    tHabits:  'عاداتي — أبريل 2026',
+    tAnalysis:'التحليل',
+    tMental:  'الإحصائيات الذهنية',
+    tTop:     'أفضل العادات 🏆',
+    tPrayer:  'مواقيت الصلاة — الشارقة',
+    tQuran:   'تقدم قراءة القرآن',
+    tStreaks: 'السلاسل 🔥',
+    lGoal: 'الهدف', lDone: 'المنجز', lLeft: 'المتبقي',
+    thGoal: 'الهدف', thDone: 'تم', thLeft: 'باقي', thProg: 'التقدم',
+    moodLabel:  '😊 المزاج',
+    motivLabel: '🔥 الدافعية',
+    prayerLoc: 'الشارقة، الإمارات',
+    prayerNames: { Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء' },
+    nextIn: (mins)=> mins>=60 ? `بعد ${Math.floor(mins/60)}س ${mins%60}د` : `بعد ${mins} دقيقة`,
+    qLblToday:'اليوم', qLblAvg:'المتوسط/يوم', qBtn:'إضافة',
+    qPlaceholder:'+ صفحات',
+    qCurr:(j,p,s)=>`الجزء <b>${j}</b> · الصفحة <b>${p}</b> · <b>${s}</b>`,
+    stCurrent:'الحالية', stBest:'الأطول', stAlert:'تنبيهات',
+    daysWord:(n)=> n===1?'يوم واحد':n===2?'يومان':n<11?`${n} أيام`:`${n} يوم`,
+    noAlerts:'كل العادات بحالة جيدة ✨',
+    saveLblSaved:'محفوظ', saveLblSaving:'جاري الحفظ…', saveLblDirty:'احفظ الآن', saveLblSave:'حفظ',
+    toastSaved:'تم الحفظ بنجاح',
+    toastAuto:'حُفظ تلقائياً',
+    toastNothing:'لا تغييرات للحفظ',
+    saveMeta:(t)=>`آخر حفظ: ${t}`,
+    saveMetaNever:'لم يُحفظ بعد',
+    footer: 'انقر على أي مربع لتسجيل العادة · البيانات محفوظة تلقائياً في المتصفح',
+    weeks: ['الأسبوع 1','الأسبوع 2','الأسبوع 3','الأسبوع 4','الأسبوع 5'],
+    wLabels: ['أ1','أ2','أ3','أ4','أ5'],
+    habits: [
+      { id:0,  name:"الاستيقاظ 5:00 صباحاً", emoji:"🌅" },
+      { id:1,  name:"صلاة الفجر",              emoji:"🕌" },
+      { id:12, name:"صلاة الظهر",              emoji:"☀️" },
+      { id:13, name:"صلاة العصر",              emoji:"🌤️" },
+      { id:14, name:"صلاة المغرب",             emoji:"🌇" },
+      { id:10, name:"صلاة العشاء",             emoji:"🌙" },
+      { id:2,  name:"قراءة القرآن",            emoji:"📖" },
+      { id:3,  name:"الجيم / الرياضة",          emoji:"💪" },
+      { id:4,  name:"دش بارد",                  emoji:"🚿" },
+      { id:5,  name:"العمل",                    emoji:"💼" },
+      { id:6,  name:"قراءة 10 صفحات",           emoji:"📚" },
+      { id:7,  name:"لا سكر",                   emoji:"🍬" },
+      { id:8,  name:"لا سوشيال ميديا",          emoji:"📵" },
+      { id:9,  name:"التخطيط",                  emoji:"📋" },
+      { id:11, name:"النوم قبل 11م",            emoji:"😴" },
+    ],
+  }
+};
+
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
+const DAYS      = 30;
+// TODAY = current day of month (for stats & highlight). Default to actual date in April 2026, clamped 1–30.
+const _now = new Date();
+const TODAY = (_now.getFullYear()===2026 && _now.getMonth()===3)
+  ? Math.min(Math.max(_now.getDate(),1),30) : 30;
+const START_DOW = 3; // April 1 = Wednesday
+const DAY_ABBR  = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const WEEK_STARTS = new Set([1,8,15,22,29]);
+// Seed rates by habit ID (for first-load demo data only)
+const RATES = {
+  0:.85, 1:.95, 2:.80, 3:.78, 4:.72, 5:.90,
+  6:.65, 7:.60, 8:.70, 9:.85, 10:.90, 11:.75,
+  12:.92, 13:.88, 14:.94, 15:.85
+};
+
+let LANG = localStorage.getItem('ht_lang') || 'en';
+
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+function loadData() {
+  try {
+    const s = localStorage.getItem("ht_apr2026");
+    if (s) return JSON.parse(s);
+  } catch(e){}
+  const d = {};
+  // Seed demo data for all habits (using IDs from current habit list)
+  T.en.habits.forEach(h => {
+    d[h.id] = {};
+    const rate = RATES[h.id] !== undefined ? RATES[h.id] : 0.7;
+    for (let day=1; day<=TODAY; day++) d[h.id][day] = Math.random() < rate;
+  });
+  return d;
+}
+// Save state tracking
+let SAVE_STATE = 'saved'; // 'saved' | 'dirty' | 'saving'
+let SAVE_LAST  = parseInt(localStorage.getItem('ht_last_save')||'0') || null;
+let SAVE_TIMER = null;
+
+function _writeStorage() {
+  try {
+    localStorage.setItem("ht_apr2026", JSON.stringify(DATA));
+    localStorage.setItem("ht_quran",   JSON.stringify(QURAN || {}));
+    localStorage.setItem("ht_prayers_done", JSON.stringify(PRAYERS_DONE || {}));
+    SAVE_LAST = Date.now();
+    localStorage.setItem('ht_last_save', String(SAVE_LAST));
+    return true;
+  } catch(e){ return false; }
+}
+
+function fmtTime(ts) {
+  if (!ts) return T[LANG].saveMetaNever;
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  const ss = String(d.getSeconds()).padStart(2,'0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function updateSaveBtn() {
+  const t = T[LANG];
+  const btn = document.getElementById('saveBtn');
+  const icon = document.getElementById('saveIcon');
+  const lbl = document.getElementById('saveLbl');
+  const meta = document.getElementById('saveMeta');
+  if (!btn) return;
+  btn.classList.remove('saved','dirty','saving');
+  if (SAVE_STATE === 'saving') {
+    btn.classList.add('saving'); icon.textContent='⏳'; lbl.textContent = t.saveLblSaving;
+  } else if (SAVE_STATE === 'dirty') {
+    btn.classList.add('dirty'); icon.textContent='💾'; lbl.textContent = t.saveLblDirty;
+  } else {
+    btn.classList.add('saved'); icon.textContent='✓'; lbl.textContent = t.saveLblSaved;
+  }
+  meta.textContent = SAVE_LAST ? t.saveMeta(fmtTime(SAVE_LAST)) : t.saveMetaNever;
+}
+
+// Toast helper
+let TOAST_TIMER = null;
+function showToast(msg, icon) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  document.getElementById('toastIcon').textContent = icon || '✓';
+  document.getElementById('toastMsg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(TOAST_TIMER);
+  TOAST_TIMER = setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+// Mark dirty (called on any habit change)
+function markDirty() {
+  SAVE_STATE = 'dirty';
+  updateSaveBtn();
+  // Auto-save with 600ms debounce
+  clearTimeout(SAVE_TIMER);
+  SAVE_TIMER = setTimeout(()=> autoSave(), 600);
+}
+
+function autoSave() {
+  if (SAVE_STATE !== 'dirty') return;
+  SAVE_STATE = 'saving'; updateSaveBtn();
+  const ok = _writeStorage();
+  SAVE_STATE = 'saved';  updateSaveBtn();
+  if (ok) showToast(T[LANG].toastAuto, '💾');
+}
+
+// Manual save (button click) — always persists & shows toast
+function manualSave() {
+  SAVE_STATE = 'saving'; updateSaveBtn();
+  const wasNothing = (SAVE_STATE_PREV === 'saved' && !arguments.length);
+  const ok = _writeStorage();
+  SAVE_STATE = 'saved'; updateSaveBtn();
+  showToast(ok ? T[LANG].toastSaved : '⚠️', ok ? '✓' : '⚠️');
+}
+let SAVE_STATE_PREV = 'saved';
+
+// Legacy function — keep for backward compat with existing checkbox handler
+function saveData() { markDirty(); }
+
+let DATA = loadData();
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function getDOW(day) { return DAY_ABBR[(START_DOW + day - 1) % 7]; }
+function currentHabits() { return T[LANG].habits; }
+
+function getAnalysis() {
+  return currentHabits().map(h => {
+    const done = Object.values(DATA[h.id]||{}).filter(Boolean).length;
+    return { ...h, done, left: TODAY - done, pct: Math.round(done / TODAY * 100) };
+  });
+}
+function getOverall() {
+  const N = currentHabits().length;
+  const goal = TODAY * N;
+  const done = currentHabits().reduce((s,h) => s + Object.values(DATA[h.id]||{}).filter(Boolean).length, 0);
+  return { goal, done, left: goal - done, pct: Math.round(done / goal * 100) };
+}
+function getDailyVals() {
+  const N = currentHabits().length;
+  return Array.from({length:TODAY},(_,i) => {
+    const d = i+1;
+    const done = currentHabits().filter(h => DATA[h.id]?.[d]).length;
+    return Math.round(done / N * 100);
+  });
+}
+function getWeeklyVals() {
+  const N = currentHabits().length;
+  return [1,2,3,4,5].map(w => {
+    const s=(w-1)*7+1, e=Math.min(w*7,DAYS);
+    const active = Array.from({length:e-s+1},(_,i)=>s+i).filter(d=>d<=TODAY);
+    if (!active.length) return 0;
+    const total = active.length * N;
+    const done = active.reduce((sum,d)=>sum+currentHabits().filter(h=>DATA[h.id]?.[d]).length,0);
+    return Math.round(done/total*100);
+  });
+}
+
+// ══════════════════════════════════════════
+//  LANGUAGE SWITCH
+// ══════════════════════════════════════════
+function setLang(lang) {
+  LANG = lang;
+  localStorage.setItem('ht_lang', lang);
+  const t = T[lang];
+  const html = document.getElementById('htmlRoot');
+  const body = document.getElementById('body');
+  html.setAttribute('lang', t.htmlLang);
+  html.setAttribute('dir',  t.dir);
+  body.className = `lang-${lang}`;
+
+  // Header
+  document.getElementById('hTitle').textContent  = t.headerTitle;
+  document.getElementById('hSub').textContent    = t.headerSub;
+  document.getElementById('hDate').textContent   = t.headerDate;
+  document.getElementById('hToday').textContent  = t.headerToday(TODAY);
+
+  // Section titles
+  document.getElementById('tDaily').textContent   = t.tDaily;
+  document.getElementById('tWeekly').textContent  = t.tWeekly;
+  document.getElementById('tOverall').textContent = t.tOverall;
+  document.getElementById('tHabits').textContent  = t.tHabits;
+  document.getElementById('tAnalysis').textContent= t.tAnalysis;
+  document.getElementById('tMental').textContent  = t.tMental;
+  document.getElementById('tTop').textContent     = t.tTop;
+
+  // Stats labels
+  document.getElementById('lGoal').textContent = t.lGoal;
+  document.getElementById('lDone').textContent = t.lDone;
+  document.getElementById('lLeft').textContent = t.lLeft;
+  document.getElementById('thGoal').textContent = t.thGoal;
+  document.getElementById('thDone').textContent = t.thDone;
+  document.getElementById('thLeft').textContent = t.thLeft;
+  document.getElementById('thProg').textContent = t.thProg;
+
+  // Footer
+  document.getElementById('footer').textContent = t.footer;
+
+  // Lang buttons
+  document.getElementById('btnEn').classList.toggle('active', lang==='en');
+  document.getElementById('btnAr').classList.toggle('active', lang==='ar');
+
+  // New section titles
+  document.getElementById('tPrayer').textContent  = t.tPrayer;
+  document.getElementById('tQuran').textContent   = t.tQuran;
+  document.getElementById('tStreaks').textContent = t.tStreaks;
+
+  // Save button labels
+  updateSaveBtn();
+
+  // Rebuild dynamic parts
+  buildTable();
+  buildAnalysis();
+  buildTop();
+  buildMental();
+  updateCharts();
+  updateStats();
+  renderPrayers();
+  renderQuran();
+  buildStreaks();
+}
+
+// ══════════════════════════════════════════
+//  BUILD HABIT TABLE
+// ══════════════════════════════════════════
+function buildTable() {
+  const t = T[LANG];
+  const days = Array.from({length:DAYS},(_,i)=>i+1);
+
+  // Colgroup
+  const cg = document.getElementById('colGroup');
+  cg.innerHTML = `<col style="width:135px">` + days.map(()=>`<col style="width:18px">`).join('');
+
+  // Week header row
+  let wRow = `<tr class="week-header"><th class="habit-name-th">${t.tHabits.split('—')[0].trim()}</th>`;
+  for (let w=1;w<=5;w++) {
+    const span = w===5?2:7;
+    wRow += `<th colspan="${span}">${t.weeks[w-1]}</th>`;
+  }
+  wRow += '</tr>';
+
+  // Day row
+  let dRow = '<tr class="day-header"><th></th>';
+  for (let d=1;d<=DAYS;d++) {
+    const cls = [WEEK_STARTS.has(d)?'week-sep':'', d===TODAY?'today-col':''].filter(Boolean).join(' ');
+    const numCls = d>TODAY?'future':d===TODAY?'today':'';
+    dRow += `<th class="${cls}"><div class="dow">${getDOW(d)}</div><div class="dnum ${numCls}">${d}</div></th>`;
+  }
+  dRow += '</tr>';
+  document.getElementById('habitHead').innerHTML = wRow + dRow;
+
+  // Body
+  const tbody = document.getElementById('habitBody');
+  tbody.innerHTML = '';
+  currentHabits().forEach((h, hi) => {
+    const tr = document.createElement('tr');
+    tr.className = 'habit-row' + (hi%2?' alt':'');
+    let html = `<td class="habit-name-td">${h.emoji} ${h.name}</td>`;
+    days.forEach(d => {
+      const ws = WEEK_STARTS.has(d), tod = d===TODAY, fut = d>TODAY;
+      const checked = !!DATA[h.id]?.[d];
+      const cbCls = ['cb', checked?'checked':'', fut?'future-day':''].filter(Boolean).join(' ');
+      const tdCls = [ws?'week-sep':'', tod?'today-col':''].filter(Boolean).join(' ');
+      html += `<td class="${tdCls}"><div class="${cbCls}" data-hid="${h.id}" data-day="${d}"><span class="cb-check">✓</span></div></td>`;
+    });
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+
+  // All 30 days are clickable (past, today, and future). Future days still styled lighter.
+  tbody.querySelectorAll('.cb').forEach(cb => {
+    cb.addEventListener('click', () => {
+      const hid = +cb.dataset.hid, day = +cb.dataset.day;
+      DATA[hid] = DATA[hid] || {};
+      DATA[hid][day] = !DATA[hid][day];
+      saveData();
+      cb.classList.toggle('checked', DATA[hid][day]);
+      updateAll();
+    });
+  });
+}
+
+// ══════════════════════════════════════════
+//  ANALYSIS
+// ══════════════════════════════════════════
+function buildAnalysis() {
+  const tbody = document.getElementById('analysisBody');
+  const an = getAnalysis();
+  tbody.innerHTML = an.map(h => {
+    const bc = h.pct>=80?'#2A1E10':h.pct>=60?'#B8894C':'#7A6040';
+    return `<tr>
+      <td>${TODAY}</td>
+      <td style="font-weight:600">${h.done}</td>
+      <td style="color:${h.left>5?'#9B4040':'#3A6B3A'};font-weight:600">${h.left}</td>
+      <td class="prog"><div class="pct-bar-bg"><div class="pct-bar" style="width:${h.pct}%;background:${bc}"></div></div></td>
+      <td style="font-weight:700;color:${bc}">${h.pct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  TOP HABITS
+// ══════════════════════════════════════════
+function buildTop() {
+  const an = getAnalysis();
+  const sorted = [...an].sort((a,b)=>b.pct-a.pct).slice(0,6);
+  const colors = ['#B8894C','#7A6040','#2A1E10','#2A1E10','#2A1E10','#2A1E10'];
+  document.getElementById('topHabits').innerHTML = sorted.map((h,i)=>
+    `<div class="top-habit">
+      <div class="rank-badge" style="background:${colors[i]}">${i+1}</div>
+      <span class="top-name">${h.emoji} ${h.name}</span>
+      <span class="top-pct" style="color:${colors[i]}">${h.pct}%</span>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════
+//  MENTAL
+// ══════════════════════════════════════════
+const MOOD  = [8,7,6,7,9,8,7,8,6,7,8,9,7,8];
+const MOTIV = [9,8,7,8,9,7,6,8,7,8,9,8,7,9];
+function buildMental() {
+  const t = T[LANG];
+  const rows = [
+    { label: t.moodLabel,  vals: MOOD,  alpha: v=>`rgba(42,30,16,${v/11})`  },
+    { label: t.motivLabel, vals: MOTIV, alpha: v=>`rgba(184,137,76,${v/10})` },
+  ];
+  let html = '<thead><tr><th>' + (LANG==='ar'?'المقياس':'Metric') + '</th>';
+  for(let i=0;i<TODAY;i++) html+=`<th>${i+1}</th>`;
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr><td class="mental-label">${r.label}</td>`;
+    r.vals.forEach(v => html += `<td class="mental-val" style="background:${r.alpha(v)};color:#2A1E10">${v}</td>`);
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('mentalTable').innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  CHARTS
+// ══════════════════════════════════════════
+let dailyChart, weeklyChart, donutChart;
+
+function initCharts() {
+  Chart.defaults.font.family = "'Crimson Text', Georgia, serif";
+
+  dailyChart = new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: Array.from({length:TODAY},(_,i)=>String(i+1)),
+      datasets: [{ data: getDailyVals(), backgroundColor:'#7A6040', borderRadius:3, barThickness:10 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.raw}%`}} },
+      scales:{
+        x:{ticks:{color:'#7A6040',font:{size:8}},grid:{display:false}},
+        y:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(120,96,64,.15)'}}
+      }
+    }
+  });
+
+  weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: T[LANG].wLabels,
+      datasets: [{ data: getWeeklyVals(), backgroundColor:'#7A6040', borderRadius:4, barThickness:34 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.raw}%`}} },
+      scales:{
+        x:{ticks:{color:'#7A6040',font:{size:9}},grid:{display:false}},
+        y:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(120,96,64,.15)'}}
+      }
+    }
+  });
+
+  const ov = getOverall();
+  donutChart = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: { datasets:[{ data:[ov.done, ov.left], backgroundColor:['#2A1E10','#C8B89A'], borderWidth:0, hoverOffset:4 }] },
+    options: { responsive:false, cutout:'70%', plugins:{legend:{display:false},tooltip:{display:false}}, animation:{duration:600} }
+  });
+}
+
+function updateCharts() {
+  if (!dailyChart) return;
+  dailyChart.data.datasets[0].data = getDailyVals();
+  dailyChart.update();
+  weeklyChart.data.labels = T[LANG].wLabels;
+  weeklyChart.data.datasets[0].data = getWeeklyVals();
+  weeklyChart.update();
+  const ov = getOverall();
+  donutChart.data.datasets[0].data = [ov.done, ov.left];
+  donutChart.update();
+}
+
+function updateStats() {
+  const ov = getOverall();
+  document.getElementById('donutPct').textContent  = ov.pct + '%';
+  document.getElementById('statGoal').textContent  = ov.goal;
+  document.getElementById('statDone').textContent  = ov.done;
+  document.getElementById('statLeft').textContent  = ov.left;
+}
+
+function updateAll() {
+  updateStats(); buildAnalysis(); buildTop(); updateCharts();
+  buildStreaks();
+}
+
+// ══════════════════════════════════════════
+//  PRAYER TIMES (Sharjah, UAE)
+// ══════════════════════════════════════════
+const PRAYER_KEYS = ['Fajr','Sunrise','Dhuhr','Asr','Maghrib','Isha'];
+let PRAYER_DATA  = JSON.parse(localStorage.getItem('ht_prayers') || '{}');
+let PRAYERS_DONE = JSON.parse(localStorage.getItem('ht_prayers_done') || '{}');
+
+async function loadPrayerTimes(){
+  const today = new Date().toISOString().slice(0,10);
+  if(PRAYER_DATA.date === today && PRAYER_DATA.timings){
+    renderPrayers(); return;
+  }
+  // Try Aladhan API
+  try{
+    const r = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Sharjah&country=United%20Arab%20Emirates&method=8');
+    const j = await r.json();
+    if(j && j.code===200 && j.data && j.data.timings){
+      const t = j.data.timings;
+      PRAYER_DATA = { date: today, timings:{
+        Fajr: t.Fajr.slice(0,5), Sunrise: t.Sunrise.slice(0,5),
+        Dhuhr: t.Dhuhr.slice(0,5), Asr: t.Asr.slice(0,5),
+        Maghrib: t.Maghrib.slice(0,5), Isha: t.Isha.slice(0,5)
+      }};
+      localStorage.setItem('ht_prayers', JSON.stringify(PRAYER_DATA));
+      renderPrayers(); return;
+    }
+  }catch(e){ console.warn('prayer api failed, using fallback'); }
+  // Fallback: typical Sharjah April times
+  PRAYER_DATA = { date: today, timings:{
+    Fajr:'04:35', Sunrise:'05:55', Dhuhr:'12:18',
+    Asr:'15:45', Maghrib:'18:39', Isha:'19:54'
+  }};
+  renderPrayers();
+}
+
+function timeToMin(hhmm){
+  const [h,m] = hhmm.split(':').map(Number);
+  return h*60 + m;
+}
+
+function getNextPrayer(){
+  if(!PRAYER_DATA.timings) return null;
+  const now = new Date();
+  const cur = now.getHours()*60 + now.getMinutes();
+  for(const k of PRAYER_KEYS){
+    const m = timeToMin(PRAYER_DATA.timings[k]);
+    if(m > cur) return { key:k, time:PRAYER_DATA.timings[k], minsAway: m - cur };
+  }
+  // After Isha → next is tomorrow's Fajr
+  const fajrM = timeToMin(PRAYER_DATA.timings.Fajr);
+  return { key:'Fajr', time:PRAYER_DATA.timings.Fajr, minsAway:(24*60 - cur) + fajrM };
+}
+
+function renderPrayers(){
+  const t = T[LANG];
+  if(!PRAYER_DATA.timings){
+    document.getElementById('prayerGrid').innerHTML = '<div style="grid-column:span 6;text-align:center;font-size:10px;color:var(--mid);padding:8px">…</div>';
+    return;
+  }
+  document.getElementById('prayerLoc').textContent = t.prayerLoc;
+  const next = getNextPrayer();
+  document.getElementById('prayerNext').textContent = next ? `${t.prayerNames[next.key]} · ${t.nextIn(next.minsAway)}` : '—';
+
+  const today = new Date().toISOString().slice(0,10);
+  const doneKey = today;
+  PRAYERS_DONE[doneKey] = PRAYERS_DONE[doneKey] || {};
+
+  const grid = document.getElementById('prayerGrid');
+  grid.innerHTML = PRAYER_KEYS.map(k => {
+    const isNext = next && next.key===k;
+    const isDone = !!PRAYERS_DONE[doneKey][k];
+    const cls = ['prayer-cell', isNext?'next':'', isDone?'done':''].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-key="${k}">
+      <div class="pn">${t.prayerNames[k]}</div>
+      <div class="pt">${PRAYER_DATA.timings[k]}</div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.prayer-cell').forEach(c => {
+    c.addEventListener('click', ()=>{
+      const k = c.dataset.key;
+      PRAYERS_DONE[doneKey][k] = !PRAYERS_DONE[doneKey][k];
+      markDirty();
+      renderPrayers();
+    });
+  });
+}
+
+// Auto-update next prayer every minute
+setInterval(()=>{ if(PRAYER_DATA.timings) renderPrayers(); }, 60*1000);
+
+// ══════════════════════════════════════════
+//  QURAN PROGRESS
+// ══════════════════════════════════════════
+const QURAN_TOTAL_PAGES = 604;
+// Approximate page → juz/sura mapping (start pages of each juz, simplified)
+const JUZ_START_PAGES = [1,22,42,62,82,102,122,142,162,182,202,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
+const SURA_AT_PAGE = (p)=>{
+  // Very rough: hand-picked anchor suras by page range
+  const anchors = [
+    [1,'الفاتحة'],[2,'البقرة'],[50,'آل عمران'],[77,'النساء'],[106,'المائدة'],
+    [128,'الأنعام'],[151,'الأعراف'],[177,'الأنفال'],[187,'التوبة'],[208,'يونس'],
+    [221,'هود'],[235,'يوسف'],[249,'الرعد'],[262,'إبراهيم'],[267,'الحجر'],
+    [281,'النحل'],[293,'الإسراء'],[305,'الكهف'],[317,'مريم'],[332,'طه'],
+    [358,'الحج'],[377,'المؤمنون'],[388,'النور'],[400,'الفرقان'],[417,'الشعراء'],
+    [437,'النمل'],[455,'القصص'],[470,'العنكبوت'],[481,'لقمان'],[490,'الأحزاب'],
+    [502,'سبأ'],[517,'فاطر'],[542,'يس'],[549,'الصافات'],[566,'الزمر'],
+    [581,'غافر'],[592,'فصلت'],[600,'الشورى'],[604,'الناس']
+  ];
+  let last = anchors[0][1];
+  for(const [pg,name] of anchors){ if(p>=pg) last = name; else break; }
+  return last;
+};
+const pageToJuz = (p)=>{
+  for(let i=JUZ_START_PAGES.length-1;i>=0;i--) if(p>=JUZ_START_PAGES[i]) return i+1;
+  return 1;
+};
+
+let QURAN = JSON.parse(localStorage.getItem('ht_quran') || JSON.stringify({
+  pages_read: 0,
+  current_page: 1,
+  history: {} // {YYYY-MM-DD: pages_added}
+}));
+
+function saveQuran(){ markDirty(); }
+
+function addQuranPages(){
+  const inp = document.getElementById('qInput');
+  const n = parseInt(inp.value);
+  if(!n || n<=0 || n>50) return;
+  const today = new Date().toISOString().slice(0,10);
+  QURAN.history[today] = (QURAN.history[today]||0) + n;
+  QURAN.pages_read += n;
+  QURAN.current_page = Math.min(QURAN_TOTAL_PAGES, QURAN.current_page + n);
+  saveQuran();
+  inp.value = '';
+  renderQuran();
+}
+
+function getQuranAvg(){
+  // average of last 7 days that have entries (or all days)
+  const dates = Object.keys(QURAN.history).sort().slice(-7);
+  if(!dates.length) return 0;
+  const sum = dates.reduce((s,d)=>s+(QURAN.history[d]||0),0);
+  return Math.round(sum / dates.length);
+}
+
+function renderQuran(){
+  const t = T[LANG];
+  const today = new Date().toISOString().slice(0,10);
+  const todayPages = QURAN.history[today] || 0;
+  const avg = getQuranAvg();
+  const pct = Math.min(100, Math.round((QURAN.pages_read / QURAN_TOTAL_PAGES) * 100));
+  const juz = pageToJuz(QURAN.current_page);
+  const sura = SURA_AT_PAGE(QURAN.current_page);
+
+  document.getElementById('quranBar').style.width = pct + '%';
+  document.getElementById('quranBarTxt').textContent = `${QURAN.pages_read} / ${QURAN_TOTAL_PAGES}  (${pct}%)`;
+  document.getElementById('qLblToday').textContent = t.qLblToday;
+  document.getElementById('qLblAvg').textContent = t.qLblAvg;
+  document.getElementById('qToday').textContent = todayPages;
+  document.getElementById('qAvg').textContent = avg;
+  document.getElementById('qBtn').textContent = t.qBtn;
+  document.getElementById('qInput').placeholder = t.qPlaceholder;
+  document.getElementById('qCurr').innerHTML = t.qCurr(juz, QURAN.current_page, sura);
+}
+
+// ══════════════════════════════════════════
+//  STREAKS & ALERTS
+// ══════════════════════════════════════════
+let STREAK_TAB = 'current';
+
+function setStreakTab(tab){
+  STREAK_TAB = tab;
+  ['stTab1','stTab2','stTab3'].forEach((id,i) => {
+    const map = ['current','best','alert'];
+    document.getElementById(id).classList.toggle('active', map[i]===tab);
+  });
+  buildStreaks();
+}
+
+function calcStreaks(habitId){
+  // Walk from day 1 → TODAY. Compute longest and current (consecutive ending at TODAY).
+  let longest = 0, run = 0, current = 0;
+  for(let d=1; d<=TODAY; d++){
+    if(DATA[habitId]?.[d]){ run++; if(run>longest) longest=run; }
+    else run = 0;
+  }
+  // current streak = trailing run that includes TODAY (or yesterday)
+  let i = TODAY;
+  while(i>=1 && DATA[habitId]?.[i]){ current++; i--; }
+  return { longest, current };
+}
+
+function buildStreaks(){
+  const t = T[LANG];
+  document.getElementById('tStreaks').textContent = t.tStreaks;
+  document.getElementById('stTab1').textContent = t.stCurrent;
+  document.getElementById('stTab2').textContent = t.stBest;
+  document.getElementById('stTab3').textContent = t.stAlert;
+
+  const habits = currentHabits();
+  const stats = habits.map(h => {
+    const s = calcStreaks(h.id);
+    const done = Object.values(DATA[h.id]||{}).filter(Boolean).length;
+    const pct = Math.round(done / TODAY * 100);
+    return { ...h, ...s, pct };
+  });
+
+  let list = [];
+  if(STREAK_TAB === 'current'){
+    list = [...stats].sort((a,b)=>b.current - a.current).slice(0,6);
+  } else if(STREAK_TAB === 'best'){
+    list = [...stats].sort((a,b)=>b.longest - a.longest).slice(0,6);
+  } else {
+    list = stats.filter(h => h.pct < 50).sort((a,b)=>a.pct-b.pct);
+  }
+
+  const wrap = document.getElementById('streakList');
+  if(STREAK_TAB === 'alert' && list.length === 0){
+    wrap.innerHTML = `<div style="text-align:center;padding:14px 6px;font-size:11px;color:var(--green)">${t.noAlerts}</div>`;
+    return;
+  }
+  wrap.innerHTML = list.map(h => {
+    let val, cls, extra='';
+    if(STREAK_TAB === 'alert'){
+      val = h.pct + '%';
+      cls = 'danger';
+      extra = ' alert';
+    } else {
+      const n = STREAK_TAB === 'current' ? h.current : h.longest;
+      val = n;
+      cls = n>=14 ? 'hot' : n>=7 ? 'warm' : 'cold';
+      if(STREAK_TAB==='current' && n>=7) extra = ' fire';
+    }
+    return `<div class="streak-row${extra}">
+      <span class="streak-name">${h.emoji} ${h.name}</span>
+      <span class="streak-num ${cls}">${val}</span>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+buildTable();
+buildAnalysis();
+buildTop();
+buildMental();
+initCharts();
+updateStats();
+buildStreaks();
+renderQuran();
+renderPrayers();           // initial render with empty/cached
+loadPrayerTimes();         // async fetch from Aladhan
+setLang(LANG);             // apply saved lang on load
+
+// Allow Enter key in Quran input
+document.getElementById('qInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') addQuranPages();
+});
+</script>
+</body>
+</html>
